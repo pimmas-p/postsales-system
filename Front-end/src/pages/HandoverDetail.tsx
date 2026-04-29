@@ -16,8 +16,22 @@ import {
   Alert,
   Chip,
   IconButton,
+  Stack,
+  Divider,
+  Avatar,
 } from '@mui/material';
-import { ArrowBack, CheckCircle, AccessTime, Cancel } from '@mui/icons-material';
+import { 
+  ArrowBack, 
+  CheckCircle, 
+  AccessTime, 
+  Cancel,
+  Home,
+  Description,
+  AccountBalance,
+  Person,
+  Phone,
+  Email
+} from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { handoverApi } from '../services/handoverApi';
 import { StatusChip } from '../components/StatusChip';
@@ -32,6 +46,42 @@ export const HandoverDetail: React.FC = () => {
   const { data: handoverCase, isLoading, error, refetch } = useQuery({
     queryKey: ['handover', 'case', id],
     queryFn: () => handoverApi.getCaseById(id!),
+    enabled: !!id,
+  });
+
+  // Fetch contract details from Legal
+  const { data: contractData } = useQuery({
+    queryKey: ['handover', id, 'contract'],
+    queryFn: async () => {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/handover/${id}/contract`);
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.data;
+    },
+    enabled: !!id,
+  });
+
+  // Fetch payment details from Payment
+  const { data: paymentData } = useQuery({
+    queryKey: ['handover', id, 'payment'],
+    queryFn: async () => {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/handover/${id}/payment`);
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.data;
+    },
+    enabled: !!id,
+  });
+
+  // Fetch unit details from Inventory
+  const { data: unitData } = useQuery({
+    queryKey: ['handover', id, 'unit'],
+    queryFn: async () => {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/handover/${id}/unit`);
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.data;
+    },
     enabled: !!id,
   });
 
@@ -144,6 +194,202 @@ export const HandoverDetail: React.FC = () => {
               </Box>
             </CardContent>
           </Card>
+
+          {/* Unit Information */}
+          {unitData && (
+            <Card sx={{ mt: 2 }}>
+              <CardContent>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                  <Home color="primary" />
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Unit Information
+                  </Typography>
+                </Stack>
+                
+                {unitData.photo_url && (
+                  <Box
+                    component="img"
+                    src={unitData.photo_url}
+                    alt="Unit"
+                    sx={{
+                      width: '100%',
+                      height: 160,
+                      objectFit: 'cover',
+                      borderRadius: 1,
+                      mb: 2
+                    }}
+                  />
+                )}
+
+                <Stack spacing={1.5}>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Unit Type</Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {unitData.unit_type || 'N/A'}
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Size</Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {unitData.size ? `${unitData.size} sq.m` : 'N/A'}
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Floor</Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {unitData.floor || 'N/A'}
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Direction</Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {unitData.direction || 'N/A'}
+                    </Typography>
+                  </Box>
+                </Stack>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Contract Information */}
+          {contractData && (
+            <Card sx={{ mt: 2 }}>
+              <CardContent>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                  <Description color="primary" />
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Contract Details
+                  </Typography>
+                </Stack>
+
+                <Stack spacing={1.5}>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Contract ID</Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {contractData.contract_id || contractData.id}
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Status</Typography>
+                    <Chip 
+                      label={contractData.status || 'drafted'} 
+                      size="small" 
+                      color={contractData.status === 'signed' ? 'success' : 'default'}
+                    />
+                  </Box>
+
+                  {contractData.signed_date && (
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Signed Date</Typography>
+                      <Typography variant="body2" fontWeight={600}>
+                        {format(new Date(contractData.signed_date), 'dd/MM/yyyy')}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {contractData.contract_amount && (
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Contract Amount</Typography>
+                      <Typography variant="body2" fontWeight={600}>
+                        ฿{contractData.contract_amount.toLocaleString()}
+                      </Typography>
+                    </Box>
+                  )}
+                </Stack>
+
+                {contractData.download_url && (
+                  <Button 
+                    fullWidth 
+                    variant="outlined" 
+                    size="small"
+                    sx={{ mt: 2 }}
+                    href={contractData.download_url}
+                    target="_blank"
+                  >
+                    Download Contract
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Payment Information */}
+          {paymentData && (
+            <Card sx={{ mt: 2 }}>
+              <CardContent>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                  <AccountBalance color="primary" />
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Payment Details
+                  </Typography>
+                </Stack>
+
+                <Stack spacing={1.5}>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Payment Status</Typography>
+                    <Chip 
+                      label={paymentData.status || 'pending'} 
+                      size="small"
+                      color={paymentData.status === 'completed' ? 'success' : 'warning'}
+                    />
+                  </Box>
+
+                  {paymentData.total_amount && (
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Total Amount</Typography>
+                      <Typography variant="body2" fontWeight={600}>
+                        ฿{paymentData.total_amount.toLocaleString()}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {paymentData.paid_amount && (
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Paid Amount</Typography>
+                      <Typography variant="body2" fontWeight={600} color="success.main">
+                        ฿{paymentData.paid_amount.toLocaleString()}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {paymentData.outstanding_amount && paymentData.outstanding_amount > 0 && (
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Outstanding</Typography>
+                      <Typography variant="body2" fontWeight={600} color="error.main">
+                        ฿{paymentData.outstanding_amount.toLocaleString()}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {paymentData.last_payment_date && (
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Last Payment</Typography>
+                      <Typography variant="body2" fontWeight={600}>
+                        {format(new Date(paymentData.last_payment_date), 'dd/MM/yyyy')}
+                      </Typography>
+                    </Box>
+                  )}
+                </Stack>
+
+                {paymentData.receipt_url && (
+                  <Button 
+                    fullWidth 
+                    variant="outlined" 
+                    size="small"
+                    sx={{ mt: 2 }}
+                    href={paymentData.receipt_url}
+                    target="_blank"
+                  >
+                    View Receipt
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </Grid>
 
         {/* Event Timeline */}

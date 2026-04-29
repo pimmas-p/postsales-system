@@ -24,6 +24,7 @@ import { Visibility as ViewIcon } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { handoverApi } from '../services/handoverApi';
 import { StatusChip } from '../components/StatusChip';
+import { ErrorAlert } from '../components/ErrorAlert';
 import { useHandoverStore } from '../store/handoverStore';
 import { format } from 'date-fns';
 
@@ -60,9 +61,10 @@ export const HandoverDashboard: React.FC = () => {
 
   if (error) {
     return (
-      <Alert severity="error" sx={{ mb: 2 }}>
-        Error loading handover cases: {(error as Error).message}
-      </Alert>
+      <ErrorAlert 
+        error={error} 
+        title="ไม่สามารถโหลดข้อมูล Handover Readiness" 
+      />
     );
   }
 

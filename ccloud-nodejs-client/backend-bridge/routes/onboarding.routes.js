@@ -244,16 +244,22 @@ router.put('/cases/:id/register', async (req, res) => {
       passwordHash
     });
 
-    // Publish Kafka event
+    // Publish Kafka event with billing information for Payment team
+    // Per TEAM_INTEGRATION.md Section 8.2 - Payment needs this for account receivable setup
     try {
       await producer.publishMemberRegistered({
+        memberId: updatedCase.id,
         caseId: updatedCase.id,
         unitId: updatedCase.unit_id,
         customerId: updatedCase.customer_id,
         email: updatedCase.email,
         phone: updatedCase.phone,
+        areaSize: updatedCase.area_size || null,
+        effectiveDate: updatedCase.registered_at || new Date().toISOString(),
+        billingCycle: 'monthly', // Default billing cycle
         timestamp: new Date().toISOString()
       });
+      console.log(`✅ Member registration published to Payment team for billing setup`);
     } catch (kafkaError) {
       console.warn('Failed to publish member.registered event:', kafkaError.message);
     }

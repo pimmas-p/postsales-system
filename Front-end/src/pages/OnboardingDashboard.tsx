@@ -23,6 +23,7 @@ import { Visibility as ViewIcon, Add as AddIcon } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { onboardingApi } from '../services/onboardingApi';
 import { StatusChip } from '../components/StatusChip';
+import { ErrorAlert } from '../components/ErrorAlert';
 import { useOnboardingStore } from '../store/onboardingStore';
 import { format } from 'date-fns';
 import { useState } from 'react';
@@ -61,9 +62,10 @@ export const OnboardingDashboard: React.FC = () => {
 
   if (error) {
     return (
-      <Alert severity="error" sx={{ mb: 2 }}>
-        Error loading onboarding cases: {(error as Error).message}
-      </Alert>
+      <ErrorAlert 
+        error={error} 
+        title="ไม่สามารถโหลดข้อมูล Owner Onboarding" 
+      />
     );
   }
 

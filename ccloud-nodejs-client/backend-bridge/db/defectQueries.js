@@ -353,6 +353,108 @@ async function getDefectStats() {
   }
 }
 
+/**
+ * Update defect with warranty information
+ * NOTE: This requires database schema update to add warranty columns
+ * Columns needed: warranty_id, warranty_coverage_status, warranty_coverage_reason, warranty_verified_at
+ * @param {string} defectId - Defect UUID
+ * @param {Object} warrantyData - Warranty information
+ * @returns {Promise<Object>} Updated defect
+ */
+async function updateDefectWarrantyStatus(defectId, warrantyData) {
+  try {
+    console.log('ℹ️  updateDefectWarrantyStatus called - Database schema update needed');
+    console.log(`   Defect ID: ${defectId}`);
+    console.log(`   Warranty Coverage: ${warrantyData.coverageStatus}`);
+    console.log(`   Reason: ${warrantyData.coverageReason}`);
+    
+    // TODO: Uncomment when database schema is updated
+    /*
+    const { data, error } = await supabase
+      .from('defect_cases')
+      .update({
+        warranty_id: warrantyData.warrantyId,
+        warranty_coverage_status: warrantyData.coverageStatus,
+        warranty_coverage_reason: warrantyData.coverageReason,
+        warranty_verified_at: warrantyData.verifiedAt || new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', defectId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    // Insert event
+    await insertDefectEvent({
+      defect_id: defectId,
+      event_type: 'warranty.verified',
+      event_source: 'legal',
+      details: warrantyData.coverageReason
+    });
+    
+    return data;
+    */
+    
+    // For now, just insert an event
+    await insertDefectEvent({
+      defect_id: defectId,
+      event_type: 'warranty.verified',
+      event_source: 'legal',
+      details: `Coverage: ${warrantyData.coverageStatus} - ${warrantyData.coverageReason || 'No reason provided'}`
+    });
+    
+    console.log(`   ✅ Warranty event logged (full storage pending schema update)`);
+    return { success: true, message: 'Warranty event logged' };
+    
+  } catch (error) {
+    console.error('Error updating defect warranty status:', error);
+    throw error;
+  }
+}
+
+/**
+ * Store warranty coverage information
+ * NOTE: This may require a separate warranty_coverage table
+ * @param {Object} warrantyData - Warranty coverage data
+ * @returns {Promise<Object>} Stored warranty info
+ */
+async function storeWarrantyCoverage(warrantyData) {
+  try {
+    console.log('ℹ️  storeWarrantyCoverage called - Database schema/table needed');
+    console.log(`   Unit ID: ${warrantyData.unitId}`);
+    console.log(`   Contract ID: ${warrantyData.contractId}`);
+    console.log(`   Coverage: ${warrantyData.startsAt} to ${warrantyData.endsAt}`);
+    
+    // TODO: Implement when warranty_coverage table is created
+    /*
+    const { data, error } = await supabase
+      .from('warranty_coverage')
+      .insert({
+        contract_id: warrantyData.contractId,
+        unit_id: warrantyData.unitId,
+        customer_id: warrantyData.customerId,
+        starts_at: warrantyData.startsAt,
+        ends_at: warrantyData.endsAt,
+        covered_categories: warrantyData.coveredCategories,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+    */
+    
+    console.log(`   ℹ️  Warranty coverage logged (storage pending table creation)`);
+    return { success: true, message: 'Warranty coverage logged' };
+    
+  } catch (error) {
+    console.error('Error storing warranty coverage:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   getAllDefects,
   getDefectById,
@@ -363,5 +465,7 @@ module.exports = {
   resolveDefect,
   verifyDefect,
   insertDefectEvent,
-  getDefectStats
+  getDefectStats,
+  updateDefectWarrantyStatus,
+  storeWarrantyCoverage
 };

@@ -5,6 +5,11 @@ const {
   calculateOverallStatus
 } = require('../db/queries');
 
+const {
+  updateDefectWarrantyStatus,
+  storeWarrantyCoverage
+} = require('../db/defectQueries');
+
 /**
  * Handle KYC completed event
  */
@@ -137,8 +142,89 @@ async function handlePaymentEvent(event) {
   console.log(`   📊 Overall status: ${updatedCase.overall_status}`);
 }
 
+/**
+ * Handle Common Fees payment completed event
+ * Optional: Track common area fees payment for units
+ */
+async function handleCommonFeesEvent(event) {
+  console.log('   📋 Processing Common Fees event...');
+  
+  // Parse Payment team's wrapper format if present
+  const eventData = event.success ? event.data : event;
+  
+  const { invoiceId, customerId, unitId, amount, type, status, paidAt } = eventData;
+  
+  // For now, just log the event (no UI implementation yet)
+  // In future: Store in separate common_fees_payments table
+  console.log(`   ✅ Common fees tracked for unit: ${unitId}`);
+  console.log(`   💰 Amount: ${amount}`);
+  console.log(`   📄 Invoice ID: ${invoiceId}`);
+  console.log(`   ℹ️  Note: Common fees tracking logged but not stored in database yet`);
+}
+
+/**
+ * Handle Warranty Coverage Registered event from Legal team
+ * Store warranty coverage info for defect management
+ */
+async function handleWarrantyRegisteredEvent(event) {
+  console.log('   📋 Processing Warranty Registration event...');
+  
+  const { contractId, unitId, customerId, startsAt, endsAt, coveredCategories } = event;
+  
+  // Store warranty coverage information
+  try {
+    await storeWarrantyCoverage({
+      contractId,
+      unitId,
+      customerId,
+      startsAt,
+      endsAt,
+      coveredCategories
+    });
+    
+    console.log(`   ✅ Warranty registered for unit: ${unitId}`);
+    console.log(`   📅 Coverage: ${startsAt} to ${endsAt}`);
+    console.log(`   📋 Categories: ${coveredCategories?.join(', ') || 'All'}`);
+  } catch (error) {
+    console.error(`   ❌ Failed to store warranty coverage:`, error.message);
+  }
+}
+
+/**
+ * Handle Warranty Coverage Verified event from Legal team
+ * Update defect case with warranty verification result
+ */
+async function handleWarrantyVerifiedEvent(event) {
+  console.log('   📋 Processing Warranty Verification event...');
+  
+  const { claimId, warrantyId, defectId, coverageStatus, coverageReason, verifiedAt } = event;
+  
+  if (!defectId) {
+    console.warn('   ⚠️  No defectId in warranty verification event, skipping');
+    return;
+  }
+  
+  try {
+    await updateDefectWarrantyStatus(defectId, {
+      warrantyId,
+      coverageStatus,
+      coverageReason,
+      verifiedAt
+    });
+    
+    console.log(`   ✅ Warranty verified for defect: ${defectId}`);
+    console.log(`   📊 Coverage: ${coverageStatus}`);
+    console.log(`   💬 Reason: ${coverageReason || 'No reason provided'}`);
+  } catch (error) {
+    console.error(`   ❌ Failed to update defect warranty status:`, error.message);
+  }
+}
+
 module.exports = {
   handleKycEvent,
   handleContractEvent,
-  handlePaymentEvent
+  handlePaymentEvent,
+  handleCommonFeesEvent,
+  handleWarrantyRegisteredEvent,
+  handleWarrantyVerifiedEvent
 };

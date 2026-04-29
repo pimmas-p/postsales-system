@@ -1,6 +1,13 @@
 const { Kafka } = require('@confluentinc/kafka-javascript').KafkaJS;
 const { readKafkaConfig } = require('./config');
-const { handleKycEvent, handleContractEvent, handlePaymentEvent } = require('../services/eventHandlers');
+const { 
+  handleKycEvent, 
+  handleContractEvent, 
+  handlePaymentEvent,
+  handleCommonFeesEvent,
+  handleWarrantyRegisteredEvent,
+  handleWarrantyVerifiedEvent
+} = require('../services/eventHandlers');
 
 let consumer = null;
 
@@ -10,8 +17,14 @@ let consumer = null;
 async function startConsumer() {
   const config = readKafkaConfig();
   
-  // Configure consumer
-  config['group.id'] = 'postsales-backend-bridge-group';
+  // Check if Kafka is disabled
+  if (!config) {
+    console.log('ℹ️  Kafka consumer not started (Kafka is disabled)');
+    return;
+  }
+  
+  // Configure consumer with environment variable or default
+  config['group.id'] = process.env.KAFKA_CONSUMER_GROUP_ID || 'postsales-backend-bridge-group';
   config['auto.offset.reset'] = 'earliest';
   config['enable.auto.commit'] = 'true';
 
@@ -26,7 +39,10 @@ async function startConsumer() {
   const topics = [
     'kyc.completed',
     'legal.contract.drafted',
-    'payment.secondpayment.completed'
+    'payment.secondpayment.completed',
+    'payment.invoice.commonfees.completed',
+    'legal.warranty.coverage.registered',
+    'legal.warranty.coverage.verified'
   ];
 
   await consumer.subscribe({ topics });
@@ -54,6 +70,15 @@ async function startConsumer() {
             break;
           case 'payment.secondpayment.completed':
             await handlePaymentEvent(event);
+            break;
+          case 'payment.invoice.commonfees.completed':
+            await handleCommonFeesEvent(event);
+            break;
+          case 'legal.warranty.coverage.registered':
+            await handleWarrantyRegisteredEvent(event);
+            break;
+          case 'legal.warranty.coverage.verified':
+            await handleWarrantyVerifiedEvent(event);
             break;
           default:
             console.warn(`⚠️  Unknown topic: ${topic}`);

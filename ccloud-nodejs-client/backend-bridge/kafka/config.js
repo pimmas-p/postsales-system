@@ -1,36 +1,43 @@
-const fs = require('fs');
-const path = require('path');
-
 /**
- * Read Kafka configuration from client.properties file
+ * Read Kafka configuration from environment variables
+ * This is more secure than reading from client.properties file
  */
 function readKafkaConfig() {
-  const configPath = path.join(__dirname, '../../client.properties');
+  // Check if Kafka is enabled
+  const kafkaEnabled = process.env.KAFKA_ENABLED === 'true';
   
-  if (!fs.existsSync(configPath)) {
-    console.error('❌ client.properties not found!');
+  if (!kafkaEnabled) {
+    console.log('ℹ️  Kafka is disabled (KAFKA_ENABLED=false)');
+    return null;
+  }
+
+  // Validate required environment variables
+  const requiredVars = [
+    'KAFKA_BOOTSTRAP_SERVERS',
+    'KAFKA_SASL_USERNAME',
+    'KAFKA_SASL_PASSWORD'
+  ];
+
+  const missing = requiredVars.filter(varName => !process.env[varName]);
+  if (missing.length > 0) {
+    console.error(`❌ Missing required Kafka environment variables: ${missing.join(', ')}`);
     process.exit(1);
   }
 
-  const data = fs.readFileSync(configPath, 'utf8').toString().split('\n');
+  const config = {
+    'bootstrap.servers': process.env.KAFKA_BOOTSTRAP_SERVERS,
+    'security.protocol': 'SASL_SSL',
+    'sasl.mechanisms': 'PLAIN',
+    'sasl.username': process.env.KAFKA_SASL_USERNAME,
+    'sasl.password': process.env.KAFKA_SASL_PASSWORD,
+  };
   
-  const config = data.reduce((acc, line) => {
-    const trimmedLine = line.trim();
-    
-    // Skip comments and empty lines
-    if (!trimmedLine || trimmedLine.startsWith('#')) {
-      return acc;
-    }
-
-    const [key, value] = trimmedLine.split('=');
-    if (key && value) {
-      acc[key.trim()] = value.trim();
-    }
-    return acc;
-  }, {});
-  
-  // Add SSL workaround for development - disable certificate verification
-  config['enable.ssl.certificate.verification'] = 'false';
+  // SSL certificate verification - can be disabled for development
+  const disableSSLVerification = process.env.KAFKA_DISABLE_SSL_VERIFICATION === 'true';
+  if (disableSSLVerification) {
+    console.warn('⚠️  Kafka SSL certificate verification is DISABLED');
+    config['enable.ssl.certificate.verification'] = 'false';
+  }
   
   return config;
 }

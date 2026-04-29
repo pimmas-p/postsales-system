@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const defectQueries = require('../db/defectQueries');
 const producer = require('../kafka/producer');
+const externalApi = require('../services/externalApi');
 
 /**
  * @swagger
@@ -185,7 +186,31 @@ router.post('/cases', async (req, res) => {
       reportedBy
     });
 
-    // Publish Kafka event
+    // Optional: Get property history from Inventory for context
+    try {
+      const propertyHistory = await externalApi.getPropertyHistory(unitId);
+      if (propertyHistory) {
+        console.log(`✅ Property history retrieved for unit ${unitId}`);
+        // Future: Use history to assess if defect is recurring
+      }
+    } catch (historyError) {
+      console.warn('Could not retrieve property history:', historyError.message);
+      // Continue without history - not critical
+    }
+
+    // Request warranty coverage check from Legal team
+    // This publishes event for Legal to verify if defect is covered
+    try {
+      const warrantyResult = await producer.publishWarrantyDefectReported(newDefect);
+      if (warrantyResult?.success) {
+        console.log(`✅ Warranty check requested for defect ${newDefect.defect_number}`);
+      }
+    } catch (warrantyError) {
+      console.warn('Failed to request warranty check:', warrantyError.message);
+      // Continue without warranty check - will be handled manually
+    }
+
+    // Publish general defect.reported event
     try {
       await producer.publishDefectReported({
         defectId: newDefect.id,

@@ -172,6 +172,7 @@ export const DefectDashboard: React.FC = () => {
               <TableCell>Title</TableCell>
               <TableCell align="center">Category</TableCell>
               <TableCell align="center">Priority</TableCell>
+              <TableCell align="center">Assigned To</TableCell>
               <TableCell align="center">Status</TableCell>
               <TableCell align="center">Reported</TableCell>
               <TableCell align="center">Actions</TableCell>
@@ -179,46 +180,84 @@ export const DefectDashboard: React.FC = () => {
           </TableHead>
           <TableBody>
             {filteredDefects && filteredDefects.length > 0 ? (
-              filteredDefects.map((defect) => (
-                <TableRow key={defect.id} hover>
-                  <TableCell sx={{ fontWeight: 600 }}>{defect.defect_number}</TableCell>
-                  <TableCell>{defect.unit_id}</TableCell>
-                  <TableCell>{defect.title}</TableCell>
-                  <TableCell align="center">
-                    <Chip 
-                      label={DEFECT_CATEGORIES[defect.category].split(' ')[0]} 
-                      size="small" 
-                      variant="outlined"
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    <Chip 
-                      label={defect.priority.toUpperCase()} 
-                      color={getPriorityColor(defect.priority) as any}
-                      size="small"
-                      sx={{ fontWeight: 600 }}
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    <StatusChip status={defect.status} size="medium" />
-                  </TableCell>
-                  <TableCell align="center">
-                    {format(new Date(defect.reported_at), 'dd/MM/yyyy')}
-                  </TableCell>
-                  <TableCell align="center">
-                    <IconButton
-                      size="small"
-                      onClick={() => navigate(`/defects/${defect.id}`)}
-                      title="View Details"
-                    >
-                      <ViewIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))
+              filteredDefects.map((defect) => {
+                const getCategoryIcon = (category: string) => {
+                  switch (category) {
+                    case 'electrical': return '⚡';
+                    case 'plumbing': return '🚰';
+                    case 'structural': return '🏗️';
+                    case 'hvac': return '❄️';
+                    case 'door_window': return '🚪';
+                    case 'cosmetic': return '🎨';
+                    default: return '🔧';
+                  }
+                };
+
+                return (
+                  <TableRow 
+                    key={defect.id} 
+                    hover
+                    sx={{
+                      bgcolor: defect.priority === 'critical' 
+                        ? 'error.50' 
+                        : defect.priority === 'high'
+                        ? 'warning.50'
+                        : 'inherit'
+                    }}
+                  >
+                    <TableCell sx={{ fontWeight: 600 }}>{defect.defect_number}</TableCell>
+                    <TableCell>{defect.unit_id}</TableCell>
+                    <TableCell>{defect.title}</TableCell>
+                    <TableCell align="center">
+                      <Chip 
+                        label={`${getCategoryIcon(defect.category)} ${DEFECT_CATEGORIES[defect.category]}`}
+                        size="small" 
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Chip 
+                        label={defect.priority.toUpperCase()} 
+                        color={getPriorityColor(defect.priority) as any}
+                        size="small"
+                        sx={{ fontWeight: 600 }}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      {defect.assigned_to ? (
+                        <Chip 
+                          label={defect.assigned_to} 
+                          size="small" 
+                          color="primary"
+                          variant="outlined"
+                        />
+                      ) : (
+                        <Typography variant="caption" color="text.secondary">
+                          Unassigned
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell align="center">
+                      <StatusChip status={defect.status} size="medium" />
+                    </TableCell>
+                    <TableCell align="center">
+                      {format(new Date(defect.reported_at), 'dd/MM/yyyy')}
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        size="small"
+                        onClick={() => navigate(`/defects/${defect.id}`)}
+                        title="View Details"
+                      >
+                        <ViewIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
-                <TableCell colSpan={8} align="center">
+                <TableCell colSpan={9} align="center">
                   <Typography color="text.secondary" py={4}>
                     No defects found
                   </Typography>

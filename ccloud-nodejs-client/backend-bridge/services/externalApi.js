@@ -9,6 +9,7 @@ const axios = require('axios');
 const INVENTORY_BASE_URL = process.env.INVENTORY_SERVICE_URL || 'https://inventory-service.onrender.com';
 const LEGAL_CONTRACT_BASE_URL = process.env.LEGAL_CONTRACT_SERVICE_URL || 'https://contract-service-h5fs.onrender.com';
 const LEGAL_WARRANTY_BASE_URL = process.env.LEGAL_WARRANTY_SERVICE_URL || 'https://warranty-service-gtv0.onrender.com';
+const PAYMENT_BASE_URL = process.env.PAYMENT_SERVICE_URL || 'https://payment-service.onrender.com';
 
 // Create axios instances with timeouts
 const inventoryClient = axios.create({
@@ -29,6 +30,14 @@ const legalContractClient = axios.create({
 
 const legalWarrantyClient = axios.create({
   baseURL: LEGAL_WARRANTY_BASE_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
+const paymentClient = axios.create({
+  baseURL: PAYMENT_BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
@@ -64,6 +73,7 @@ function addErrorInterceptor(client, serviceName) {
 addErrorInterceptor(inventoryClient, 'Inventory');
 addErrorInterceptor(legalContractClient, 'Legal-Contract');
 addErrorInterceptor(legalWarrantyClient, 'Legal-Warranty');
+addErrorInterceptor(paymentClient, 'Payment');
 
 // ==========================================
 // INVENTORY TEAM APIs
@@ -225,6 +235,32 @@ async function getWarrantyClaimStatus(claimId) {
 }
 
 // ==========================================
+// PAYMENT TEAM APIs
+// ==========================================
+
+/**
+ * Get payment details for a customer/unit
+ * @param {string} customerId - Customer ID
+ * @param {string} unitId - Unit ID (optional)
+ * @returns {Promise<Object>} Payment details and status
+ */
+async function getPaymentDetails(customerId, unitId = null) {
+  try {
+    const params = unitId ? { unitId } : {};
+    console.log(`📞 Calling Payment API: GET /api/payments/customer/${customerId}`);
+    
+    const response = await paymentClient.get(`/api/payments/customer/${customerId}`, { params });
+    
+    console.log(`✅ Payment details retrieved for customer: ${customerId}`);
+    return response.data;
+    
+  } catch (error) {
+    console.error(`❌ Failed to get payment details for customer ${customerId}:`, error.message);
+    return null;
+  }
+}
+
+// ==========================================
 // HELPER FUNCTIONS
 // ==========================================
 
@@ -237,7 +273,8 @@ async function checkExternalServicesHealth() {
   const healthStatus = {
     inventory: { available: false, responseTime: null },
     legalContract: { available: false, responseTime: null },
-    legalWarranty: { available: false, responseTime: null }
+    legalWarranty: { available: false, responseTime: null },
+    payment: { available: false, responseTime: null }
   };
   
   // Check Inventory
@@ -276,6 +313,18 @@ async function checkExternalServicesHealth() {
     console.warn('Legal Warranty service unavailable:', error.message);
   }
   
+  // Check Payment
+  try {
+    const startTime = Date.now();
+    await paymentClient.get('/health', { timeout: 5000 });
+    healthStatus.payment = {
+      available: true,
+      responseTime: Date.now() - startTime
+    };
+  } catch (error) {
+    console.warn('Payment service unavailable:', error.message);
+  }
+  
   return healthStatus;
 }
 
@@ -291,6 +340,9 @@ module.exports = {
   getWarrantyCoverage,
   submitWarrantyClaim,
   getWarrantyClaimStatus,
+  
+  // Payment APIs
+  getPaymentDetails,
   
   // Utilities
   checkExternalServicesHealth

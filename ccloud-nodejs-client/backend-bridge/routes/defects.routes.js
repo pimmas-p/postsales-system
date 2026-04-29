@@ -525,4 +525,120 @@ router.get('/stats', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/defects/{id}/warranty:
+ *   get:
+ *     summary: Get warranty coverage for defect
+ *     tags: [Defects]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Defect case ID
+ *     responses:
+ *       200:
+ *         description: Warranty coverage details
+ *       404:
+ *         description: Defect not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/:id/warranty', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get defect details to extract contract_id
+    const defect = await defectQueries.getDefectById(id);
+    
+    if (!defect) {
+      return res.status(404).json({
+        success: false,
+        error: 'Defect case not found'
+      });
+    }
+    
+    // Call Legal Warranty Service
+    const warrantyData = await externalApi.getWarrantyCoverage(defect.contract_id);
+    
+    if (!warrantyData) {
+      return res.status(503).json({
+        success: false,
+        error: 'Unable to fetch warranty information from Legal Warranty Service'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: warrantyData
+    });
+  } catch (error) {
+    console.error('Error fetching warranty for defect:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/defects/{id}/unit-history:
+ *   get:
+ *     summary: Get unit/property history for defect
+ *     tags: [Defects]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Defect case ID
+ *     responses:
+ *       200:
+ *         description: Property history from Inventory Service
+ *       404:
+ *         description: Defect not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/:id/unit-history', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get defect details to extract unit_id
+    const defect = await defectQueries.getDefectById(id);
+    
+    if (!defect) {
+      return res.status(404).json({
+        success: false,
+        error: 'Defect case not found'
+      });
+    }
+    
+    // Call Inventory Service
+    const historyData = await externalApi.getPropertyHistory(defect.unit_id);
+    
+    if (!historyData) {
+      return res.status(503).json({
+        success: false,
+        error: 'Unable to fetch property history from Inventory Service'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: historyData
+    });
+  } catch (error) {
+    console.error('Error fetching unit history for defect:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

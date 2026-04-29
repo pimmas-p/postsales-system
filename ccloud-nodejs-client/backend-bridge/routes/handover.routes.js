@@ -7,6 +7,7 @@ const {
   getEventsForCase
 } = require('../db/queries');
 const { publishHandoverCompleted } = require('../kafka/producer');
+const externalApi = require('../services/externalApi');
 
 /**
  * GET /api/handover/cases
@@ -190,6 +191,132 @@ router.get('/stats', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching stats:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/handover/:id/contract
+ * Get contract details from Legal Contract Service
+ */
+router.get('/:id/contract', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get handover case to extract contract_id
+    const handoverCase = await getHandoverCaseById(id);
+    
+    if (!handoverCase) {
+      return res.status(404).json({
+        success: false,
+        error: 'Handover case not found'
+      });
+    }
+    
+    // Call Legal Contract Service
+    const contractData = await externalApi.getContractDetails(handoverCase.contract_id);
+    
+    if (!contractData) {
+      return res.status(503).json({
+        success: false,
+        error: 'Unable to fetch contract information from Legal Contract Service'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: contractData
+    });
+  } catch (error) {
+    console.error('Error fetching contract for handover:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/handover/:id/payment
+ * Get payment details from Payment Service
+ */
+router.get('/:id/payment', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get handover case to extract customer_id and unit_id
+    const handoverCase = await getHandoverCaseById(id);
+    
+    if (!handoverCase) {
+      return res.status(404).json({
+        success: false,
+        error: 'Handover case not found'
+      });
+    }
+    
+    // Call Payment Service
+    const paymentData = await externalApi.getPaymentDetails(
+      handoverCase.customer_id,
+      handoverCase.unit_id
+    );
+    
+    if (!paymentData) {
+      return res.status(503).json({
+        success: false,
+        error: 'Unable to fetch payment information from Payment Service'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: paymentData
+    });
+  } catch (error) {
+    console.error('Error fetching payment for handover:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/handover/:id/unit
+ * Get unit/property details from Inventory Service
+ */
+router.get('/:id/unit', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get handover case to extract unit_id
+    const handoverCase = await getHandoverCaseById(id);
+    
+    if (!handoverCase) {
+      return res.status(404).json({
+        success: false,
+        error: 'Handover case not found'
+      });
+    }
+    
+    // Call Inventory Service
+    const unitData = await externalApi.getPropertyDetails(handoverCase.unit_id);
+    
+    if (!unitData) {
+      return res.status(503).json({
+        success: false,
+        error: 'Unable to fetch unit information from Inventory Service'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: unitData
+    });
+  } catch (error) {
+    console.error('Error fetching unit for handover:', error);
     res.status(500).json({
       success: false,
       error: error.message

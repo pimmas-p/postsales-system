@@ -7,6 +7,7 @@ import { HandoverDashboard } from './pages/HandoverDashboard';
 import { HandoverDetail } from './pages/HandoverDetail';
 import { OnboardingDashboard } from './pages/OnboardingDashboard';
 import { DefectDashboard } from './pages/DefectDashboard';
+import { DefectDetail } from './pages/DefectDetail';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -47,6 +48,7 @@ function App() {
               <Route path="handover/:id" element={<HandoverDetail />} />
               <Route path="onboarding" element={<OnboardingDashboard />} />
               <Route path="defects" element={<DefectDashboard />} />
+              <Route path="defects/:id" element={<DefectDetail />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>

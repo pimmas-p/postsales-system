@@ -25,10 +25,18 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor': ['react', 'react-dom', 'react-router-dom'],
-          'mui': ['@mui/material', '@mui/icons-material'],
-          'state': ['zustand', '@tanstack/react-query'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'vendor';
+            }
+            if (id.includes('@mui')) {
+              return 'mui';
+            }
+            if (id.includes('zustand') || id.includes('@tanstack')) {
+              return 'state';
+            }
+          }
         },
       },
     },

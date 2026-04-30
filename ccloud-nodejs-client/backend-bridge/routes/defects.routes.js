@@ -241,9 +241,9 @@ router.post('/cases', async (req, res) => {
 
 /**
  * @swagger
- * /api/defects/cases/{id}/assign:
+ * /api/defects/cases/{id}/schedule:
  *   put:
- *     summary: Assign defect to contractor
+ *     summary: Schedule repair for defect
  *     tags: [Defects]
  *     parameters:
  *       - in: path
@@ -260,43 +260,57 @@ router.post('/cases', async (req, res) => {
  *             type: object
  *             required:
  *               - assignedTo
+ *               - scheduledDate
  *             properties:
  *               assignedTo:
  *                 type: string
+ *                 description: Contractor name
+ *               scheduledDate:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Scheduled repair date
+ *               repairNotes:
+ *                 type: string
+ *                 description: Notes about the repair
  *     responses:
  *       200:
- *         description: Defect assigned successfully
+ *         description: Repair scheduled successfully
  *       400:
  *         description: Invalid input
  *       500:
  *         description: Server error
  */
-router.put('/cases/:id/assign', async (req, res) => {
+router.put('/cases/:id/schedule', async (req, res) => {
   try {
     const { id } = req.params;
-    const { assignedTo } = req.body;
+    const { assignedTo, scheduledDate, repairNotes } = req.body;
 
     // Validation
-    if (!assignedTo) {
+    if (!assignedTo || !scheduledDate) {
       return res.status(400).json({
         success: false,
-        error: 'assignedTo is required'
+        error: 'assignedTo and scheduledDate are required'
       });
     }
 
-    const updatedDefect = await defectQueries.assignDefect(id, assignedTo);
+    const updatedDefect = await defectQueries.scheduleRepair(id, {
+      assignedTo,
+      scheduledDate,
+      repairNotes
+    });
 
     // Publish Kafka event
     try {
-      await producer.publishDefectAssigned({
+      await producer.publishDefectScheduled({
         defectId: updatedDefect.id,
         defectNumber: updatedDefect.defect_number,
         unitId: updatedDefect.unit_id,
         assignedTo: updatedDefect.assigned_to,
+        scheduledDate: updatedDefect.repair_scheduled_date,
         timestamp: new Date().toISOString()
       });
     } catch (kafkaError) {
-      console.warn('Failed to publish defect.assigned event:', kafkaError.message);
+      console.warn('Failed to publish defect.scheduled event:', kafkaError.message);
     }
 
     res.json({
@@ -304,7 +318,7 @@ router.put('/cases/:id/assign', async (req, res) => {
       data: updatedDefect
     });
   } catch (error) {
-    console.error('Error assigning defect:', error);
+    console.error('Error scheduling repair:', error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -314,9 +328,9 @@ router.put('/cases/:id/assign', async (req, res) => {
 
 /**
  * @swagger
- * /api/defects/cases/{id}/resolve:
+ * /api/defects/cases/{id}/close:
  *   put:
- *     summary: Mark defect as resolved
+ *     summary: Close defect case
  *     tags: [Defects]
  *     parameters:
  *       - in: path
@@ -332,52 +346,55 @@ router.put('/cases/:id/assign', async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - resolvedBy
+ *               - closedBy
  *             properties:
- *               resolvedBy:
+ *               closedBy:
  *                 type: string
- *               notes:
+ *                 description: Name of person closing the case
+ *               closingNotes:
  *                 type: string
+ *                 description: Notes about case closure
  *               photoAfterUrl:
  *                 type: string
+ *                 description: URL of photo after repair
  *     responses:
  *       200:
- *         description: Defect resolved successfully
+ *         description: Defect case closed successfully
  *       400:
  *         description: Invalid input
  *       500:
  *         description: Server error
  */
-router.put('/cases/:id/resolve', async (req, res) => {
+router.put('/cases/:id/close', async (req, res) => {
   try {
     const { id } = req.params;
-    const { resolvedBy, notes, photoAfterUrl } = req.body;
+    const { closedBy, closingNotes, photoAfterUrl } = req.body;
 
     // Validation
-    if (!resolvedBy) {
+    if (!closedBy) {
       return res.status(400).json({
         success: false,
-        error: 'resolvedBy is required'
+        error: 'closedBy is required'
       });
     }
 
-    const updatedDefect = await defectQueries.resolveDefect(id, {
-      resolvedBy,
-      notes,
+    const updatedDefect = await defectQueries.closeDefect(id, {
+      closedBy,
+      closingNotes,
       photoAfterUrl
     });
 
     // Publish Kafka event
     try {
-      await producer.publishDefectResolved({
+      await producer.publishDefectClosed({
         defectId: updatedDefect.id,
         defectNumber: updatedDefect.defect_number,
         unitId: updatedDefect.unit_id,
-        resolvedBy: updatedDefect.resolved_by,
+        closedBy: updatedDefect.closed_by,
         timestamp: new Date().toISOString()
       });
     } catch (kafkaError) {
-      console.warn('Failed to publish defect.resolved event:', kafkaError.message);
+      console.warn('Failed to publish defect.closed event:', kafkaError.message);
     }
 
     res.json({
@@ -385,80 +402,7 @@ router.put('/cases/:id/resolve', async (req, res) => {
       data: updatedDefect
     });
   } catch (error) {
-    console.error('Error resolving defect:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-
-/**
- * @swagger
- * /api/defects/cases/{id}/verify:
- *   put:
- *     summary: Verify defect resolution
- *     tags: [Defects]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - verifiedBy
- *             properties:
- *               verifiedBy:
- *                 type: string
- *     responses:
- *       200:
- *         description: Defect verified successfully
- *       400:
- *         description: Invalid input
- *       500:
- *         description: Server error
- */
-router.put('/cases/:id/verify', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { verifiedBy } = req.body;
-
-    // Validation
-    if (!verifiedBy) {
-      return res.status(400).json({
-        success: false,
-        error: 'verifiedBy is required'
-      });
-    }
-
-    const updatedDefect = await defectQueries.verifyDefect(id, verifiedBy);
-
-    // Publish Kafka event
-    try {
-      await producer.publishDefectVerified({
-        defectId: updatedDefect.id,
-        defectNumber: updatedDefect.defect_number,
-        unitId: updatedDefect.unit_id,
-        verifiedBy: updatedDefect.verified_by,
-        timestamp: new Date().toISOString()
-      });
-    } catch (kafkaError) {
-      console.warn('Failed to publish defect.verified event:', kafkaError.message);
-    }
-
-    res.json({
-      success: true,
-      data: updatedDefect
-    });
-  } catch (error) {
-    console.error('Error verifying defect:', error);
+    console.error('Error closing defect:', error);
     res.status(500).json({
       success: false,
       error: error.message

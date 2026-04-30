@@ -4,9 +4,8 @@ import type {
   DefectCaseWithEvents,
   DefectStats,
   ReportDefectRequest,
-  AssignDefectRequest,
-  ResolveDefectRequest,
-  VerifyDefectRequest
+  ScheduleRepairRequest,
+  CloseDefectRequest
 } from '../types/defect.types';
 
 export const defectApi = {
@@ -39,21 +38,15 @@ export const defectApi = {
     return response.data.data;
   },
 
-  // Assign defect to contractor
-  assignDefect: async (id: string, data: AssignDefectRequest): Promise<DefectCase> => {
-    const response = await apiClient.put(`/api/defects/cases/${id}/assign`, data);
+  // Schedule repair for defect
+  scheduleRepair: async (id: string, data: ScheduleRepairRequest): Promise<DefectCase> => {
+    const response = await apiClient.put(`/api/defects/cases/${id}/schedule`, data);
     return response.data.data;
   },
 
-  // Resolve defect
-  resolveDefect: async (id: string, data: ResolveDefectRequest): Promise<DefectCase> => {
-    const response = await apiClient.put(`/api/defects/cases/${id}/resolve`, data);
-    return response.data.data;
-  },
-
-  // Verify defect
-  verifyDefect: async (id: string, data: VerifyDefectRequest): Promise<DefectCase> => {
-    const response = await apiClient.put(`/api/defects/cases/${id}/verify`, data);
+  // Close defect case
+  closeDefect: async (id: string, data: CloseDefectRequest): Promise<DefectCase> => {
+    const response = await apiClient.put(`/api/defects/cases/${id}/close`, data);
     return response.data.data;
   },
 

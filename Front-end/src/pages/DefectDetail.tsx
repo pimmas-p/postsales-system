@@ -14,7 +14,12 @@ import {
   CircularProgress,
   IconButton,
   ImageList,
-  ImageListItem
+  ImageListItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField
 } from '@mui/material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -37,11 +42,43 @@ import {
 import { StatusChip } from '../components/StatusChip';
 import { format } from 'date-fns';
 import { API_BASE_URL } from '../lib/api';
+import { useState } from 'react';
 
 export const DefectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+  const [scheduleData, setScheduleData] = useState({
+    assignedTo: '',
+    scheduledDate: '',
+    repairNotes: ''
+  });
+  const [closeData, setCloseData] = useState({
+    closedBy: '',
+    closingNotes: '',
+    photoAfterUrl: ''
+  });
+
+  const scheduleMutation = useMutation({
+    mutationFn: (data: any) => defectApi.scheduleRepair(id!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['defects', id] });
+      setScheduleDialogOpen(false);
+      setScheduleData({ assignedTo: '', scheduledDate: '', repairNotes: '' });
+    }
+  });
+
+  const closeMutation = useMutation({
+    mutationFn: (data: any) => defectApi.closeDefect(id!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['defects', id] });
+      setCloseDialogOpen(false);
+      setCloseData({ closedBy: '', closingNotes: '', photoAfterUrl: '' });
+    }
+  });
 
   const { data: defect, isLoading } = useQuery({
     queryKey: ['defects', id],
@@ -149,12 +186,25 @@ export const DefectDetail: React.FC = () => {
           </Box>
           
           <Stack sx={{ flexDirection: 'row' }} spacing={2}>
-            <Button variant="outlined" startIcon={<Assignment />}>
-              Assign
-            </Button>
-            <Button variant="contained" startIcon={<CheckCircle />}>
-              Mark Resolved
-            </Button>
+            {defect.status === 'reported' && (
+              <Button 
+                variant="outlined" 
+                startIcon={<Schedule />}
+                onClick={() => setScheduleDialogOpen(true)}
+              >
+                Schedule Repair
+              </Button>
+            )}
+            {defect.status === 'scheduled' && (
+              <Button 
+                variant="contained" 
+                color="success"
+                startIcon={<CheckCircle />}
+                onClick={() => setCloseDialogOpen(true)}
+              >
+                Close Case
+              </Button>
+            )}
           </Stack>
         </Stack>
       </Box>
@@ -223,14 +273,26 @@ export const DefectDetail: React.FC = () => {
               {defect.description || 'No description provided'}
             </Typography>
 
-            {defect.resolution_notes && (
+            {defect.repair_notes && (
               <>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                  Resolution Notes
+                  Repair Notes
                 </Typography>
                 <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                  {defect.resolution_notes}
+                  {defect.repair_notes}
+                </Typography>
+              </>
+            )}
+
+            {defect.closing_notes && (
+              <>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                  Closing Notes
+                </Typography>
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {defect.closing_notes}
                 </Typography>
               </>
             )}
@@ -424,22 +486,28 @@ export const DefectDetail: React.FC = () => {
             </Typography>
             
             <Stack spacing={2}>
-              <Button 
-                fullWidth 
-                variant="outlined" 
-                startIcon={<Assignment />}
-                disabled={!!defect.assigned_to}
-              >
-                {defect.assigned_to ? 'Already Assigned' : 'Assign to Contractor'}
-              </Button>
+              {defect.status === 'reported' && (
+                <Button 
+                  fullWidth 
+                  variant="contained" 
+                  startIcon={<Schedule />}
+                  onClick={() => setScheduleDialogOpen(true)}
+                >
+                  Schedule Repair
+                </Button>
+              )}
 
-              <Button 
-                fullWidth 
-                variant="outlined" 
-                startIcon={<Schedule />}
-              >
-                Schedule Repair
-              </Button>
+              {defect.status === 'scheduled' && (
+                <Button 
+                  fullWidth 
+                  variant="contained"
+                  color="success"
+                  startIcon={<CheckCircle />}
+                  onClick={() => setCloseDialogOpen(true)}
+                >
+                  Close Case
+                </Button>
+              )}
 
               <Button 
                 fullWidth 
@@ -456,18 +524,6 @@ export const DefectDetail: React.FC = () => {
               >
                 Add Notes
               </Button>
-
-              <Divider />
-
-              <Button 
-                fullWidth 
-                variant="contained" 
-                color="success"
-                startIcon={<CheckCircle />}
-                disabled={defect.status === 'resolved' || defect.status === 'verified'}
-              >
-                Mark as Resolved
-              </Button>
             </Stack>
           </Paper>
 
@@ -479,35 +535,26 @@ export const DefectDetail: React.FC = () => {
             
             <Stack spacing={2}>
               <Box>
-                <Typography variant="caption" color="text.secondary">Created</Typography>
+                <Typography variant="caption" color="text.secondary">Reported</Typography>
                 <Typography variant="body2">
-                  {format(new Date(defect.created_at), 'MMM dd, yyyy HH:mm')}
+                  {format(new Date(defect.reported_at), 'MMM dd, yyyy HH:mm')}
                 </Typography>
               </Box>
 
-              {defect.assigned_at && (
+              {defect.repair_scheduled_date && (
                 <Box>
-                  <Typography variant="caption" color="text.secondary">Assigned</Typography>
+                  <Typography variant="caption" color="text.secondary">Repair Scheduled</Typography>
                   <Typography variant="body2">
-                    {format(new Date(defect.assigned_at), 'MMM dd, yyyy HH:mm')}
+                    {format(new Date(defect.repair_scheduled_date), 'MMM dd, yyyy HH:mm')}
                   </Typography>
                 </Box>
               )}
 
-              {defect.resolved_at && (
+              {defect.closed_at && (
                 <Box>
-                  <Typography variant="caption" color="text.secondary">Resolved</Typography>
+                  <Typography variant="caption" color="text.secondary">Closed</Typography>
                   <Typography variant="body2">
-                    {format(new Date(defect.resolved_at), 'MMM dd, yyyy HH:mm')}
-                  </Typography>
-                </Box>
-              )}
-
-              {defect.verified_at && (
-                <Box>
-                  <Typography variant="caption" color="text.secondary">Verified</Typography>
-                  <Typography variant="body2">
-                    {format(new Date(defect.verified_at), 'MMM dd, yyyy HH:mm')}
+                    {format(new Date(defect.closed_at), 'MMM dd, yyyy HH:mm')}
                   </Typography>
                 </Box>
               )}
@@ -515,6 +562,101 @@ export const DefectDetail: React.FC = () => {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* Schedule Repair Dialog */}
+      <Dialog 
+        open={scheduleDialogOpen} 
+        onClose={() => setScheduleDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Schedule Repair</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Contractor Name"
+              required
+              fullWidth
+              value={scheduleData.assignedTo}
+              onChange={(e) => setScheduleData({ ...scheduleData, assignedTo: e.target.value })}
+            />
+            <TextField
+              label="Scheduled Date"
+              type="datetime-local"
+              required
+              fullWidth
+              value={scheduleData.scheduledDate}
+              onChange={(e) => setScheduleData({ ...scheduleData, scheduledDate: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              label="Repair Notes"
+              multiline
+              rows={3}
+              fullWidth
+              value={scheduleData.repairNotes}
+              onChange={(e) => setScheduleData({ ...scheduleData, repairNotes: e.target.value })}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setScheduleDialogOpen(false)}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={() => scheduleMutation.mutate(scheduleData)}
+            disabled={!scheduleData.assignedTo || !scheduleData.scheduledDate || scheduleMutation.isPending}
+          >
+            {scheduleMutation.isPending ? 'Scheduling...' : 'Schedule'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Close Case Dialog */}
+      <Dialog 
+        open={closeDialogOpen} 
+        onClose={() => setCloseDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Close Defect Case</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Closed By"
+              required
+              fullWidth
+              value={closeData.closedBy}
+              onChange={(e) => setCloseData({ ...closeData, closedBy: e.target.value })}
+            />
+            <TextField
+              label="Closing Notes"
+              multiline
+              rows={3}
+              fullWidth
+              value={closeData.closingNotes}
+              onChange={(e) => setCloseData({ ...closeData, closingNotes: e.target.value })}
+            />
+            <TextField
+              label="Photo URL (After Repair)"
+              fullWidth
+              value={closeData.photoAfterUrl}
+              onChange={(e) => setCloseData({ ...closeData, photoAfterUrl: e.target.value })}
+              placeholder="https://..."
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCloseDialogOpen(false)}>Cancel</Button>
+          <Button 
+            variant="contained"
+            color="success"
+            onClick={() => closeMutation.mutate(closeData)}
+            disabled={!closeData.closedBy || closeMutation.isPending}
+          >
+            {closeMutation.isPending ? 'Closing...' : 'Close Case'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

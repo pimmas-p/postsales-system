@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS onboarding_cases (
   email VARCHAR(255),
   phone VARCHAR(50),
   password_hash VARCHAR(255), -- Store hashed password (not plain text)
+  area_size DECIMAL(10, 2), -- Unit area in square meters (for common fees calculation)
   registration_status VARCHAR(50) DEFAULT 'pending', -- pending, completed, failed
   registered_at TIMESTAMP,
   

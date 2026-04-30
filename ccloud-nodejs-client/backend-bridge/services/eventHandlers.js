@@ -12,11 +12,16 @@ const {
 
 /**
  * Handle KYC completed event
+ * Supports both camelCase and snake_case field names from different teams
  */
 async function handleKycEvent(event) {
   console.log('   📋 Processing KYC event...');
   
-  const { unitId, customerId, kycStatus, timestamp } = event;
+  // ✅ FIXED: Support both camelCase and snake_case
+  const unitId = event.unitId || event.unit_id;
+  const customerId = event.customerId || event.customer_id;
+  const kycStatus = event.kycStatus || event.kyc_status || event.status;
+  const timestamp = event.timestamp || event.received_at;
 
   // Get existing case or create new one
   let existingCase = await getHandoverCaseByUnitId(unitId);
@@ -58,11 +63,16 @@ async function handleKycEvent(event) {
 
 /**
  * Handle Contract drafted event
+ * Supports both camelCase and snake_case field names from different teams
  */
 async function handleContractEvent(event) {
   console.log('   📋 Processing Contract event...');
   
-  const { unitId, customerId, contractStatus, timestamp } = event;
+  // ✅ FIXED: Support both camelCase and snake_case
+  const unitId = event.unitId || event.unit_id;
+  const customerId = event.customerId || event.customer_id;
+  const contractStatus = event.contractStatus || event.contract_status || event.status;
+  const timestamp = event.timestamp || event.drafted_at;
 
   let existingCase = await getHandoverCaseByUnitId(unitId);
 
@@ -95,23 +105,28 @@ async function handleContractEvent(event) {
   });
 
   console.log(`   ✅ Contract event processed for unit: ${unitId}`);
-  console.log(`   📊 Overall status: ${updatedCase.overall_status}`);
 }
 
 /**
- * Handle Payment completed event
+ * Handle Payment event
+ * Supports both camelCase and snake_case field names from different teams
  */
 async function handlePaymentEvent(event) {
   console.log('   📋 Processing Payment event...');
   
-  const { unitId, customerId, paymentAmount, paymentStatus, timestamp } = event;
+  // ✅ FIXED: Support both camelCase and snake_case
+  const unitId = event.unitId || event.unit_id;
+  const customerId = event.customerId || event.customer_id;
+  const paymentAmount = event.paymentAmount || event.payment_amount || event.amount;
+  const paymentStatus = event.paymentStatus || event.payment_status || event.status;
+  const timestamp = event.timestamp || event.paid_at || event.completed_at;
 
   let existingCase = await getHandoverCaseByUnitId(unitId);
 
   const caseData = {
     unit_id: unitId,
     customer_id: customerId,
-    payment_status: paymentStatus || 'completed',
+    payment_status: paymentStatus,
     payment_amount: paymentAmount,
     payment_received_at: timestamp || new Date().toISOString(),
     updated_at: new Date().toISOString()
@@ -121,7 +136,7 @@ async function handlePaymentEvent(event) {
     caseData.overall_status = calculateOverallStatus(
       existingCase.kyc_status,
       existingCase.contract_status,
-      paymentStatus || 'completed'
+      paymentStatus
     );
   } else {
     caseData.overall_status = 'pending';
@@ -145,6 +160,7 @@ async function handlePaymentEvent(event) {
 /**
  * Handle Common Fees payment completed event
  * Optional: Track common area fees payment for units
+ * Supports both camelCase and snake_case field names from different teams
  */
 async function handleCommonFeesEvent(event) {
   console.log('   📋 Processing Common Fees event...');
@@ -152,7 +168,14 @@ async function handleCommonFeesEvent(event) {
   // Parse Payment team's wrapper format if present
   const eventData = event.success ? event.data : event;
   
-  const { invoiceId, customerId, unitId, amount, type, status, paidAt } = eventData;
+  // ✅ FIXED: Support both camelCase and snake_case
+  const invoiceId = eventData.invoiceId || eventData.invoice_id;
+  const customerId = eventData.customerId || eventData.customer_id;
+  const unitId = eventData.unitId || eventData.unit_id;
+  const amount = eventData.amount;
+  const type = eventData.type;
+  const status = eventData.status;
+  const paidAt = eventData.paidAt || eventData.paid_at;
   
   // For now, just log the event (no UI implementation yet)
   // In future: Store in separate common_fees_payments table
@@ -165,11 +188,18 @@ async function handleCommonFeesEvent(event) {
 /**
  * Handle Warranty Coverage Registered event from Legal team
  * Store warranty coverage info for defect management
+ * Supports both camelCase and snake_case field names from different teams
  */
 async function handleWarrantyRegisteredEvent(event) {
   console.log('   📋 Processing Warranty Registration event...');
   
-  const { contractId, unitId, customerId, startsAt, endsAt, coveredCategories } = event;
+  // ✅ FIXED: Support both camelCase and snake_case
+  const contractId = event.contractId || event.contract_id;
+  const unitId = event.unitId || event.unit_id;
+  const customerId = event.customerId || event.customer_id;
+  const startsAt = event.startsAt || event.starts_at || event.start_date;
+  const endsAt = event.endsAt || event.ends_at || event.end_date;
+  const coveredCategories = event.coveredCategories || event.covered_categories;
   
   // Store warranty coverage information
   try {
@@ -193,11 +223,18 @@ async function handleWarrantyRegisteredEvent(event) {
 /**
  * Handle Warranty Coverage Verified event from Legal team
  * Update defect case with warranty verification result
+ * Supports both camelCase and snake_case field names from different teams
  */
 async function handleWarrantyVerifiedEvent(event) {
   console.log('   📋 Processing Warranty Verification event...');
   
-  const { claimId, warrantyId, defectId, coverageStatus, coverageReason, verifiedAt } = event;
+  // ✅ FIXED: Support both camelCase and snake_case
+  const claimId = event.claimId || event.claim_id;
+  const warrantyId = event.warrantyId || event.warranty_id;
+  const defectId = event.defectId || event.defect_id;
+  const coverageStatus = event.coverageStatus || event.coverage_status || event.status;
+  const coverageReason = event.coverageReason || event.coverage_reason || event.reason;
+  const verifiedAt = event.verifiedAt || event.verified_at;
   
   if (!defectId) {
     console.warn('   ⚠️  No defectId in warranty verification event, skipping');

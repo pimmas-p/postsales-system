@@ -20,25 +20,28 @@ CREATE TABLE IF NOT EXISTS defect_cases (
   photo_before_url TEXT,
   photo_after_url TEXT,
   
-  -- Assignment
-  assigned_to VARCHAR(100), -- Contractor ID or name
-  assigned_at TIMESTAMP,
+  -- Assignment & Scheduling
+  assigned_to VARCHAR(100), -- Contractor name
+  repair_scheduled_date TIMESTAMP,
+  repair_notes TEXT,
   
-  -- Status Tracking
-  status VARCHAR(50) DEFAULT 'reported', -- reported, assigned, in_progress, resolved, verified, closed
+  -- Status Tracking (3-step flow: reported → scheduled → closed)
+  status VARCHAR(50) DEFAULT 'reported', -- reported, scheduled, closed
   
-  -- Resolution
-  resolved_at TIMESTAMP,
-  resolved_by VARCHAR(100),
-  resolution_notes TEXT,
-  
-  -- Verification
-  verified_at TIMESTAMP,
-  verified_by VARCHAR(100),
+  -- Case Closure
+  closed_at TIMESTAMP,
+  closed_by VARCHAR(100),
+  closing_notes TEXT,
   
   -- Reporter
   reported_by VARCHAR(100) NOT NULL,
   reported_at TIMESTAMP DEFAULT NOW(),
+  
+  -- Warranty Information (from Legal team)
+  warranty_id VARCHAR(100),
+  warranty_coverage_status VARCHAR(50), -- covered, rejected, partial
+  warranty_coverage_reason TEXT,
+  warranty_verified_at TIMESTAMP,
   
   -- Metadata
   created_at TIMESTAMP DEFAULT NOW(),
@@ -51,7 +54,7 @@ CREATE TABLE IF NOT EXISTS defect_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   defect_id UUID REFERENCES defect_cases(id) ON DELETE CASCADE,
   
-  event_type VARCHAR(100) NOT NULL, -- defect.reported, defect.assigned, defect.resolved, defect.verified
+  event_type VARCHAR(100) NOT NULL, -- defect.reported, defect.scheduled, defect.closed
   event_source VARCHAR(100) NOT NULL, -- postsales, contractor, system
   
   payload JSONB NOT NULL, -- Event data
@@ -64,6 +67,7 @@ CREATE INDEX IF NOT EXISTS idx_defect_unit_id ON defect_cases(unit_id);
 CREATE INDEX IF NOT EXISTS idx_defect_status ON defect_cases(status);
 CREATE INDEX IF NOT EXISTS idx_defect_priority ON defect_cases(priority);
 CREATE INDEX IF NOT EXISTS idx_defect_category ON defect_cases(category);
+CREATE INDEX IF NOT EXISTS idx_defect_warranty_id ON defect_cases(warranty_id);
 CREATE INDEX IF NOT EXISTS idx_defect_created_at ON defect_cases(created_at);
 CREATE INDEX IF NOT EXISTS idx_defect_events_defect_id ON defect_events(defect_id);
 CREATE INDEX IF NOT EXISTS idx_defect_events_type ON defect_events(event_type);

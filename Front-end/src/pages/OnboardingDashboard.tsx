@@ -19,7 +19,7 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import { Visibility as ViewIcon, Add as AddIcon } from '@mui/icons-material';
+import { Visibility as ViewIcon } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { onboardingApi } from '../services/onboardingApi';
 import { StatusChip } from '../components/StatusChip';
@@ -31,7 +31,6 @@ import { useState } from 'react';
 export const OnboardingDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { filters, setStatusFilter, setSearchQuery } = useOnboardingStore();
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const { data: cases, isLoading, error } = useQuery({
     queryKey: ['onboarding', 'cases', filters],
@@ -75,13 +74,6 @@ export const OnboardingDashboard: React.FC = () => {
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
           Owner Onboarding
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setCreateDialogOpen(true)}
-        >
-          Create New
-        </Button>
       </Box>
 
       {/* Filters */}

@@ -13,21 +13,18 @@ export interface DefectCase {
   photo_before_url: string | null;
   photo_after_url: string | null;
   
-  // Assignment
+  // Assignment & Scheduling
   assigned_to: string | null;
-  assigned_at: string | null;
+  repair_scheduled_date: string | null;
+  repair_notes: string | null;
   
   // Status
   status: DefectStatus;
   
-  // Resolution
-  resolved_at: string | null;
-  resolved_by: string | null;
-  resolution_notes: string | null;
-  
-  // Verification
-  verified_at: string | null;
-  verified_by: string | null;
+  // Closure
+  closed_at: string | null;
+  closed_by: string | null;
+  closing_notes: string | null;
   
   // Reporter
   reported_by: string;
@@ -51,10 +48,7 @@ export type DefectPriority = 'low' | 'medium' | 'high' | 'critical';
 
 export type DefectStatus = 
   | 'reported' 
-  | 'assigned' 
-  | 'in_progress' 
-  | 'resolved' 
-  | 'verified' 
+  | 'scheduled' 
   | 'closed';
 
 export interface DefectEvent {
@@ -73,10 +67,8 @@ export interface DefectCaseWithEvents extends DefectCase {
 export interface DefectStats {
   total: number;
   reported: number;
-  assigned: number;
-  in_progress: number;
-  resolved: number;
-  verified: number;
+  scheduled: number;
+  closed: number;
   critical: number;
   high: number;
   medium: number;
@@ -93,18 +85,16 @@ export interface ReportDefectRequest {
   reportedBy: string;
 }
 
-export interface AssignDefectRequest {
+export interface ScheduleRepairRequest {
   assignedTo: string;
+  scheduledDate: string;
+  repairNotes?: string;
 }
 
-export interface ResolveDefectRequest {
-  resolvedBy: string;
-  notes?: string;
+export interface CloseDefectRequest {
+  closedBy: string;
+  closingNotes?: string;
   photoAfterUrl?: string; // Base64 or URL
-}
-
-export interface VerifyDefectRequest {
-  verifiedBy: string;
 }
 
 // Helper constants
@@ -127,9 +117,6 @@ export const DEFECT_PRIORITIES: Record<DefectPriority, string> = {
 
 export const DEFECT_STATUSES: Record<DefectStatus, string> = {
   reported: 'Reported',
-  assigned: 'Assigned',
-  in_progress: 'In Progress',
-  resolved: 'Resolved',
-  verified: 'Verified',
+  scheduled: 'Scheduled',
   closed: 'Closed'
 };

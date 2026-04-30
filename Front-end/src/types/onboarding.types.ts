@@ -53,25 +53,3 @@ export interface OnboardingStats {
   in_progress: number;
   completed: number;
 }
-
-export interface CreateOnboardingRequest {
-  handoverCaseId?: string;
-  unitId: string;
-  customerId: string;
-}
-
-export interface RegisterMemberRequest {
-  email: string;
-  phone: string;
-  passwordHash: string; // In real app, hash on backend
-}
-
-export interface UploadDocumentsRequest {
-  idDocumentUrl: string; // Base64 or URL
-  contractDocumentUrl: string; // Base64 or URL
-}
-
-export interface CompleteOnboardingRequest {
-  completedBy: string;
-  notes?: string;
-}

@@ -181,7 +181,8 @@ async function publishMemberRegistered(memberData) {
 }
 
 /**
- * Publish onboarding completed event
+ * Publish profile activated event (Resident Profile Activated)
+ * Per TEAM_INTEGRATION.md - postsales.profile.activated
  */
 async function publishOnboardingCompleted(completionData) {
   try {
@@ -190,11 +191,11 @@ async function publishOnboardingCompleted(completionData) {
       return null;
     }
 
-    const topic = 'postsales.onboarding.completed';
+    const topic = 'postsales.profile.activated';
     
     const event = {
       eventId: require('uuid').v4(),
-      eventType: 'postsales.onboarding.completed',
+      eventType: 'postsales.profile.activated',
       timestamp: completionData.timestamp || new Date().toISOString(),
       data: {
         caseId: completionData.caseId,
@@ -217,7 +218,7 @@ async function publishOnboardingCompleted(completionData) {
     
   } catch (error) {
     console.error('❌ Failed to publish Kafka event:', {
-      topic: 'postsales.onboarding.completed',
+      topic: 'postsales.profile.activated',
       unitId: completionData.unitId,
       error: error.message
     });
@@ -274,26 +275,27 @@ async function publishDefectReported(defectData) {
 }
 
 /**
- * Publish defect assigned event
+ * Publish defect scheduled for repair event
  */
-async function publishDefectAssigned(assignmentData) {
+async function publishDefectScheduled(scheduleData) {
   try {
     if (!producer) {
       console.warn('⚠️  Kafka producer not initialized, skipping event publish');
       return null;
     }
 
-    const topic = 'postsales.defect.assigned';
+    const topic = 'postsales.defect.scheduled';
     
     const event = {
       eventId: require('uuid').v4(),
-      eventType: 'postsales.defect.assigned',
-      timestamp: assignmentData.timestamp || new Date().toISOString(),
+      eventType: 'postsales.defect.scheduled',
+      timestamp: scheduleData.timestamp || new Date().toISOString(),
       data: {
-        defectId: assignmentData.defectId,
-        defectNumber: assignmentData.defectNumber,
-        unitId: assignmentData.unitId,
-        assignedTo: assignmentData.assignedTo
+        defectId: scheduleData.defectId,
+        defectNumber: scheduleData.defectNumber,
+        unitId: scheduleData.unitId,
+        assignedTo: scheduleData.assignedTo,
+        scheduledDate: scheduleData.scheduledDate
       },
       metadata: {
         source: 'postsales-backend-bridge',
@@ -303,15 +305,15 @@ async function publishDefectAssigned(assignmentData) {
 
     await producer.send({
       topic,
-      messages: [{ key: assignmentData.unitId, value: JSON.stringify(event) }]
+      messages: [{ key: scheduleData.unitId, value: JSON.stringify(event) }]
     });
 
-    console.log(`✅ Published: ${topic} - Defect #${assignmentData.defectNumber} → ${assignmentData.assignedTo}`);
+    console.log(`✅ Published: ${topic} - Defect #${scheduleData.defectNumber} → ${scheduleData.assignedTo} on ${scheduleData.scheduledDate}`);
     
   } catch (error) {
     console.error('❌ Failed to publish Kafka event:', {
-      topic: 'postsales.defect.assigned',
-      defectNumber: assignmentData.defectNumber,
+      topic: 'postsales.defect.scheduled',
+      defectNumber: scheduleData.defectNumber,
       error: error.message
     });
     return null;
@@ -319,26 +321,27 @@ async function publishDefectAssigned(assignmentData) {
 }
 
 /**
- * Publish defect resolved event
+ * Publish defect case closed event
+ * This is the final status when repair is completed
  */
-async function publishDefectResolved(resolutionData) {
+async function publishDefectClosed(closeData) {
   try {
     if (!producer) {
       console.warn('⚠️  Kafka producer not initialized, skipping event publish');
       return null;
     }
 
-    const topic = 'postsales.defect.resolved';
+    const topic = 'defect.caseclosed.completed';
     
     const event = {
       eventId: require('uuid').v4(),
-      eventType: 'postsales.defect.resolved',
-      timestamp: resolutionData.timestamp || new Date().toISOString(),
+      eventType: 'defect.caseclosed.completed',
+      timestamp: closeData.timestamp || new Date().toISOString(),
       data: {
-        defectId: resolutionData.defectId,
-        defectNumber: resolutionData.defectNumber,
-        unitId: resolutionData.unitId,
-        resolvedBy: resolutionData.resolvedBy
+        defectId: closeData.defectId,
+        defectNumber: closeData.defectNumber,
+        unitId: closeData.unitId,
+        closedBy: closeData.closedBy
       },
       metadata: {
         source: 'postsales-backend-bridge',
@@ -348,60 +351,15 @@ async function publishDefectResolved(resolutionData) {
 
     await producer.send({
       topic,
-      messages: [{ key: resolutionData.unitId, value: JSON.stringify(event) }]
+      messages: [{ key: closeData.unitId, value: JSON.stringify(event) }]
     });
 
-    console.log(`✅ Published: ${topic} - Defect #${resolutionData.defectNumber}`);
+    console.log(`✅ Published: ${topic} - Defect #${closeData.defectNumber} closed`);
     
   } catch (error) {
     console.error('❌ Failed to publish Kafka event:', {
-      topic: 'postsales.defect.resolved',
-      defectNumber: resolutionData.defectNumber,
-      error: error.message
-    });
-    return null;
-  }
-}
-
-/**
- * Publish defect verified event
- */
-async function publishDefectVerified(verificationData) {
-  try {
-    if (!producer) {
-      console.warn('⚠️  Kafka producer not initialized, skipping event publish');
-      return null;
-    }
-
-    const topic = 'postsales.defect.verified';
-    
-    const event = {
-      eventId: require('uuid').v4(),
-      eventType: 'postsales.defect.verified',
-      timestamp: verificationData.timestamp || new Date().toISOString(),
-      data: {
-        defectId: verificationData.defectId,
-        defectNumber: verificationData.defectNumber,
-        unitId: verificationData.unitId,
-        verifiedBy: verificationData.verifiedBy
-      },
-      metadata: {
-        source: 'postsales-backend-bridge',
-        version: '1.0'
-      }
-    };
-
-    await producer.send({
-      topic,
-      messages: [{ key: verificationData.unitId, value: JSON.stringify(event) }]
-    });
-
-    console.log(`✅ Published: ${topic} - Defect #${verificationData.defectNumber}`);
-    
-  } catch (error) {
-    console.error('❌ Failed to publish Kafka event:', {
-      topic: 'postsales.defect.verified',
-      defectNumber: verificationData.defectNumber,
+      topic: 'defect.caseclosed.completed',
+      defectNumber: closeData.defectNumber,
       error: error.message
     });
     return null;
@@ -482,9 +440,8 @@ module.exports = {
   publishMemberRegistered,
   publishOnboardingCompleted,
   publishDefectReported,
-  publishDefectAssigned,
-  publishDefectResolved,
-  publishDefectVerified,
+  publishDefectScheduled,
+  publishDefectClosed,  
   publishWarrantyDefectReported,
   disconnectProducer
 };

@@ -19,21 +19,53 @@ import {
   Chip,
   CircularProgress,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Stack,
 } from '@mui/material';
 import { Visibility as ViewIcon, Add as AddIcon } from '@mui/icons-material';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { defectApi } from '../services/defectApi';
 import { StatusChip } from '../components/StatusChip';
 import { ErrorAlert } from '../components/ErrorAlert';
 import { useDefectStore } from '../store/defectStore';
 import { format } from 'date-fns';
 import { useState } from 'react';
-import { DEFECT_CATEGORIES, DEFECT_PRIORITIES } from '../types/defect.types';
+import { DEFECT_CATEGORIES, DEFECT_PRIORITIES, type DefectCategory, type DefectPriority } from '../types/defect.types';
 
 export const DefectDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { filters, setStatusFilter, setPriorityFilter, setCategoryFilter, setSearchQuery } = useDefectStore();
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [newDefect, setNewDefect] = useState({
+    unitId: '',
+    title: '',
+    description: '',
+    category: 'other' as DefectCategory,
+    priority: 'medium' as DefectPriority,
+    photoBeforeUrl: '',
+    reportedBy: ''
+  });
+
+  const reportMutation = useMutation({
+    mutationFn: defectApi.reportDefect,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['defects'] });
+      setReportDialogOpen(false);
+      setNewDefect({
+        unitId: '',
+        title: '',
+        description: '',
+        category: 'other',
+        priority: 'medium',
+        photoBeforeUrl: '',
+        reportedBy: ''
+      });
+    }
+  });
 
   const { data: defects, isLoading, error } = useQuery({
     queryKey: ['defects', 'cases', filters],
@@ -111,10 +143,8 @@ export const DefectDashboard: React.FC = () => {
             >
               <MenuItem value="all">All</MenuItem>
               <MenuItem value="reported">Reported</MenuItem>
-              <MenuItem value="assigned">Assigned</MenuItem>
-              <MenuItem value="in_progress">In Progress</MenuItem>
-              <MenuItem value="resolved">Resolved</MenuItem>
-              <MenuItem value="verified">Verified</MenuItem>
+              <MenuItem value="scheduled">Scheduled</MenuItem>
+              <MenuItem value="closed">Closed</MenuItem>
             </Select>
           </FormControl>
 
@@ -268,7 +298,89 @@ export const DefectDashboard: React.FC = () => {
         </Table>
       </TableContainer>
 
-      {/* Note: ReportDefectDialog component should be added here */}
+      {/* Report Defect Dialog */}
+      <Dialog 
+        open={reportDialogOpen} 
+        onClose={() => setReportDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Report New Defect</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Unit ID"
+              required
+              fullWidth
+              value={newDefect.unitId}
+              onChange={(e) => setNewDefect({ ...newDefect, unitId: e.target.value })}
+            />
+            <TextField
+              label="Title"
+              required
+              fullWidth
+              value={newDefect.title}
+              onChange={(e) => setNewDefect({ ...newDefect, title: e.target.value })}
+            />
+            <TextField
+              label="Description"
+              multiline
+              rows={3}
+              fullWidth
+              value={newDefect.description}
+              onChange={(e) => setNewDefect({ ...newDefect, description: e.target.value })}
+            />
+            <FormControl fullWidth required>
+              <InputLabel>Category</InputLabel>
+              <Select
+                value={newDefect.category}
+                label="Category"
+                onChange={(e) => setNewDefect({ ...newDefect, category: e.target.value as DefectCategory })}
+              >
+                {Object.entries(DEFECT_CATEGORIES).map(([key, label]) => (
+                  <MenuItem key={key} value={key}>{label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth required>
+              <InputLabel>Priority</InputLabel>
+              <Select
+                value={newDefect.priority}
+                label="Priority"
+                onChange={(e) => setNewDefect({ ...newDefect, priority: e.target.value as DefectPriority })}
+              >
+                {Object.entries(DEFECT_PRIORITIES).map(([key, label]) => (
+                  <MenuItem key={key} value={key}>{label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              label="Photo URL (Before)"
+              fullWidth
+              value={newDefect.photoBeforeUrl}
+              onChange={(e) => setNewDefect({ ...newDefect, photoBeforeUrl: e.target.value })}
+              placeholder="https://..."
+            />
+            <TextField
+              label="Reported By"
+              required
+              fullWidth
+              value={newDefect.reportedBy}
+              onChange={(e) => setNewDefect({ ...newDefect, reportedBy: e.target.value })}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setReportDialogOpen(false)}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={() => reportMutation.mutate(newDefect)}
+            disabled={!newDefect.unitId || !newDefect.title || !newDefect.reportedBy || reportMutation.isPending}
+          >
+            {reportMutation.isPending ? 'Reporting...' : 'Report Defect'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

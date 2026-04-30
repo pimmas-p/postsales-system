@@ -342,7 +342,7 @@ Post-Sales Defect Flow:
 
 | Event Topic | Consumers | Description | Topic Name in Excel |
 |------------|-----------|-------------|---------------------|
-| `postsales.handover.completed` | Sales | Handover completed | "unit.handedover.completed" |
+| `postsales.handover.completed` | Sales | Handover completed | "postsales.handover.completed" |
 | `postsales.onboarding.started` | Internal | Owner onboarding started | "Owner Onboarding Started" |
 | `postsales.member.registered` | Payment | Owner account activated | "Owner Account Activated" |
 | `postsales.profile.activated` | Internal | Resident profile activated | "Resident Profile Activated" |
@@ -479,7 +479,7 @@ postsales.handover.completed
 ```
 KYCHasBeenMade
 PurchaseContactHasBeenDraft
-unit.handedover.completed
+postsales.handover.completed
 ```
 
 ### 10.2 Standard Convention (from Overview sheet)

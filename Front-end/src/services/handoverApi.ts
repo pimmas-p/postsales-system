@@ -33,11 +33,5 @@ export const handoverApi = {
   getStats: async (): Promise<HandoverStats> => {
     const response = await apiClient.get('/api/handover/stats');
     return response.data.data;
-  },
-
-  // Get events for a case
-  getEventsForCase: async (id: string): Promise<any[]> => {
-    const response = await apiClient.get(`/api/handover/cases/${id}/events`);
-    return response.data.data;
-  },
+  }
 };

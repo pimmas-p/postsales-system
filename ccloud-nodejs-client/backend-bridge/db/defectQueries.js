@@ -110,7 +110,7 @@ async function createDefect(defectData) {
         title: defectData.title,
         description: defectData.description || null,
         category: defectData.category,
-        priority: defectData.priority || 'medium',
+        priority: defectData.priority,
         photo_before_url: defectData.photoBeforeUrl || null,
         reported_by: defectData.reportedBy,
         reported_at: new Date().toISOString(),
@@ -144,19 +144,20 @@ async function createDefect(defectData) {
 }
 
 /**
- * Assign defect to contractor
+ * Schedule repair for defect
  * @param {string} id - Defect UUID
- * @param {string} assignedTo - Contractor ID/name
+ * @param {Object} scheduleData - Schedule data (assignedTo, scheduledDate, repairNotes)
  * @returns {Promise<Object>} Updated defect
  */
-async function assignDefect(id, assignedTo) {
+async function scheduleRepair(id, scheduleData) {
   try {
     const { data, error } = await supabase
       .from('defect_cases')
       .update({
-        assigned_to: assignedTo,
-        assigned_at: new Date().toISOString(),
-        status: 'assigned',
+        assigned_to: scheduleData.assignedTo,
+        repair_scheduled_date: scheduleData.scheduledDate,
+        repair_notes: scheduleData.repairNotes || null,
+        status: 'scheduled',
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
@@ -168,109 +169,37 @@ async function assignDefect(id, assignedTo) {
     // Insert event
     await insertDefectEvent({
       defect_id: id,
-      event_type: 'defect.assigned',
-      event_source: 'postsales',
-      payload: { assignedTo }
-    });
-
-    return data;
-  } catch (error) {
-    console.error('Error assigning defect:', error);
-    throw error;
-  }
-}
-
-/**
- * Update defect status (e.g., in_progress)
- * @param {string} id - Defect UUID
- * @param {string} status - New status
- * @returns {Promise<Object>} Updated defect
- */
-async function updateDefectStatus(id, status) {
-  try {
-    const { data, error } = await supabase
-      .from('defect_cases')
-      .update({
-        status: status,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    // Insert event
-    await insertDefectEvent({
-      defect_id: id,
-      event_type: `defect.status_changed`,
-      event_source: 'postsales',
-      payload: { newStatus: status }
-    });
-
-    return data;
-  } catch (error) {
-    console.error('Error updating defect status:', error);
-    throw error;
-  }
-}
-
-/**
- * Resolve defect (mark as fixed)
- * @param {string} id - Defect UUID
- * @param {Object} resolutionData - Resolution data
- * @returns {Promise<Object>} Updated defect
- */
-async function resolveDefect(id, resolutionData) {
-  try {
-    const { data, error } = await supabase
-      .from('defect_cases')
-      .update({
-        status: 'resolved',
-        resolved_at: new Date().toISOString(),
-        resolved_by: resolutionData.resolvedBy,
-        resolution_notes: resolutionData.notes || null,
-        photo_after_url: resolutionData.photoAfterUrl || null,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    // Insert event
-    await insertDefectEvent({
-      defect_id: id,
-      event_type: 'defect.resolved',
+      event_type: 'defect.scheduled',
       event_source: 'postsales',
       payload: {
-        resolvedBy: resolutionData.resolvedBy,
-        notes: resolutionData.notes
+        assignedTo: scheduleData.assignedTo,
+        scheduledDate: scheduleData.scheduledDate
       }
     });
 
     return data;
   } catch (error) {
-    console.error('Error resolving defect:', error);
+    console.error('Error scheduling repair:', error);
     throw error;
   }
 }
 
 /**
- * Verify defect resolution
+ * Close defect case
  * @param {string} id - Defect UUID
- * @param {string} verifiedBy - Staff who verified
+ * @param {Object} closeData - Close data (closedBy, closingNotes, photoAfterUrl)
  * @returns {Promise<Object>} Updated defect
  */
-async function verifyDefect(id, verifiedBy) {
+async function closeDefect(id, closeData) {
   try {
     const { data, error } = await supabase
       .from('defect_cases')
       .update({
-        status: 'verified',
-        verified_at: new Date().toISOString(),
-        verified_by: verifiedBy,
+        status: 'closed',
+        closed_at: new Date().toISOString(),
+        closed_by: closeData.closedBy,
+        closing_notes: closeData.closingNotes || null,
+        photo_after_url: closeData.photoAfterUrl || null,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
@@ -282,14 +211,17 @@ async function verifyDefect(id, verifiedBy) {
     // Insert event
     await insertDefectEvent({
       defect_id: id,
-      event_type: 'defect.verified',
+      event_type: 'defect.closed',
       event_source: 'postsales',
-      payload: { verifiedBy }
+      payload: {
+        closedBy: closeData.closedBy,
+        notes: closeData.closingNotes
+      }
     });
 
     return data;
   } catch (error) {
-    console.error('Error verifying defect:', error);
+    console.error('Error closing defect:', error);
     throw error;
   }
 }
@@ -336,10 +268,8 @@ async function getDefectStats() {
     const stats = {
       total: allDefects.length,
       reported: allDefects.filter(d => d.status === 'reported').length,
-      assigned: allDefects.filter(d => d.status === 'assigned').length,
-      in_progress: allDefects.filter(d => d.status === 'in_progress').length,
-      resolved: allDefects.filter(d => d.status === 'resolved').length,
-      verified: allDefects.filter(d => d.status === 'verified').length,
+      scheduled: allDefects.filter(d => d.status === 'scheduled').length,
+      closed: allDefects.filter(d => d.status === 'closed').length,
       critical: allDefects.filter(d => d.priority === 'critical').length,
       high: allDefects.filter(d => d.priority === 'high').length,
       medium: allDefects.filter(d => d.priority === 'medium').length,
@@ -355,21 +285,17 @@ async function getDefectStats() {
 
 /**
  * Update defect with warranty information
- * NOTE: This requires database schema update to add warranty columns
- * Columns needed: warranty_id, warranty_coverage_status, warranty_coverage_reason, warranty_verified_at
  * @param {string} defectId - Defect UUID
  * @param {Object} warrantyData - Warranty information
  * @returns {Promise<Object>} Updated defect
  */
 async function updateDefectWarrantyStatus(defectId, warrantyData) {
   try {
-    console.log('ℹ️  updateDefectWarrantyStatus called - Database schema update needed');
+    console.log('ℹ️  Updating defect warranty status...');
     console.log(`   Defect ID: ${defectId}`);
     console.log(`   Warranty Coverage: ${warrantyData.coverageStatus}`);
     console.log(`   Reason: ${warrantyData.coverageReason}`);
     
-    // TODO: Uncomment when database schema is updated
-    /*
     const { data, error } = await supabase
       .from('defect_cases')
       .update({
@@ -390,22 +316,14 @@ async function updateDefectWarrantyStatus(defectId, warrantyData) {
       defect_id: defectId,
       event_type: 'warranty.verified',
       event_source: 'legal',
-      details: warrantyData.coverageReason
+      payload: {
+        coverageStatus: warrantyData.coverageStatus,
+        coverageReason: warrantyData.coverageReason
+      }
     });
     
+    console.log(`   ✅ Warranty status updated successfully`);
     return data;
-    */
-    
-    // For now, just insert an event
-    await insertDefectEvent({
-      defect_id: defectId,
-      event_type: 'warranty.verified',
-      event_source: 'legal',
-      details: `Coverage: ${warrantyData.coverageStatus} - ${warrantyData.coverageReason || 'No reason provided'}`
-    });
-    
-    console.log(`   ✅ Warranty event logged (full storage pending schema update)`);
-    return { success: true, message: 'Warranty event logged' };
     
   } catch (error) {
     console.error('Error updating defect warranty status:', error);
@@ -460,10 +378,8 @@ module.exports = {
   getDefectById,
   generateDefectNumber,
   createDefect,
-  assignDefect,
-  updateDefectStatus,
-  resolveDefect,
-  verifyDefect,
+  scheduleRepair,
+  closeDefect,
   insertDefectEvent,
   getDefectStats,
   updateDefectWarrantyStatus,

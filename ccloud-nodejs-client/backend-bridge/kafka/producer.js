@@ -147,14 +147,13 @@ async function publishMemberRegistered(memberData) {
       eventType: 'postsales.member.registered',
       timestamp: memberData.timestamp || new Date().toISOString(),
       data: {
-        memberId: memberData.memberId || memberData.caseId,
         customerId: memberData.customerId,
         unitId: memberData.unitId,
         areaSize: memberData.areaSize || memberData.area_size,
+        feeRatePerSqm: memberData.feeRatePerSqm || memberData.fee_rate_per_sqm || 45.0,
         effectiveDate: memberData.effectiveDate || memberData.registered_at,
-        billingCycle: memberData.billingCycle || 'monthly',
-        email: memberData.email,
-        phone: memberData.phone
+        billingCycle: memberData.billingCycle || 'MONTHLY',
+        propertyId: memberData.propertyId || memberData.property_id || memberData.unitId
       },
       metadata: {
         source: 'postsales-backend-bridge',
@@ -169,6 +168,7 @@ async function publishMemberRegistered(memberData) {
 
     console.log(`✅ Published: ${topic} - Customer: ${memberData.customerId}`);
     console.log(`   📍 Unit: ${memberData.unitId}, Area: ${memberData.areaSize || 'N/A'} sqm`);
+    console.log(`   💰 Fee Rate: ${memberData.feeRatePerSqm || 45.0} THB/sqm, Cycle: ${memberData.billingCycle || 'MONTHLY'}`);
     
   } catch (error) {
     console.error('❌ Failed to publish Kafka event:', {
@@ -331,11 +331,11 @@ async function publishDefectClosed(closeData) {
       return null;
     }
 
-    const topic = 'defect.caseclosed.completed';
+    const topic = 'postsales.caseclosed.completed';
     
     const event = {
       eventId: require('uuid').v4(),
-      eventType: 'defect.caseclosed.completed',
+      eventType: 'postsales.caseclosed.completed',
       timestamp: closeData.timestamp || new Date().toISOString(),
       data: {
         defectId: closeData.defectId,
@@ -358,7 +358,7 @@ async function publishDefectClosed(closeData) {
     
   } catch (error) {
     console.error('❌ Failed to publish Kafka event:', {
-      topic: 'defect.caseclosed.completed',
+      topic: 'postsales.caseclosed.completed',
       defectNumber: closeData.defectNumber,
       error: error.message
     });

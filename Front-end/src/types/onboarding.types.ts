@@ -8,6 +8,7 @@ export interface OnboardingCase {
   email: string | null;
   phone: string | null;
   password_hash: string | null;
+  area_size: number | null; // Unit area in sqm for common fees calculation
   registration_status: RegistrationStatus;
   registered_at: string | null;
   

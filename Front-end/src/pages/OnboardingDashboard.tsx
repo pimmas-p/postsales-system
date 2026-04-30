@@ -116,6 +116,7 @@ export const OnboardingDashboard: React.FC = () => {
               <TableCell>Unit ID</TableCell>
               <TableCell>Customer ID</TableCell>
               <TableCell>Email</TableCell>
+              <TableCell align="center">Area (sqm)</TableCell>
               <TableCell align="center">Registration</TableCell>
               <TableCell align="center">Documents</TableCell>
               <TableCell align="center">Overall Status</TableCell>
@@ -130,6 +131,13 @@ export const OnboardingDashboard: React.FC = () => {
                   <TableCell sx={{ fontWeight: 600 }}>{onboardingCase.unit_id}</TableCell>
                   <TableCell>{onboardingCase.customer_id}</TableCell>
                   <TableCell>{onboardingCase.email || '-'}</TableCell>
+                  <TableCell align="center">
+                    {onboardingCase.area_size ? 
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {onboardingCase.area_size.toFixed(1)}
+                      </Typography> 
+                      : '-'}
+                  </TableCell>
                   <TableCell align="center">
                     <StatusChip status={onboardingCase.registration_status} />
                   </TableCell>
@@ -155,7 +163,7 @@ export const OnboardingDashboard: React.FC = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={8} align="center">
+                <TableCell colSpan={9} align="center">
                   <Typography color="text.secondary" py={4}>
                     No onboarding cases found
                   </Typography>

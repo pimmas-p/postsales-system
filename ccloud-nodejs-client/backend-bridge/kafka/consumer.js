@@ -36,8 +36,14 @@ async function startConsumer() {
   console.log('✅ Kafka consumer connected!');
 
   // Subscribe to topics
+  // - managing.kyc.completed: Managing team (Team 4) - KYC completion
+  // - legal.contract.drafted: Legal team (Team 5) - Contract drafted
+  // - payment.secondpayment.completed: Payment team (Team 6) - Second payment
+  // - payment.invoice.commonfees.completed: Payment team (Team 6) - Common fees
+  // - legal.warranty.coverage.registered: Legal team (Team 5) - Warranty registration
+  // - legal.warranty.coverage.verified: Legal team (Team 5) - Warranty verification
   const topics = [
-    'kyc.completed',
+    'managing.kyc.completed',
     'legal.contract.drafted',
     'payment.secondpayment.completed',
     'payment.invoice.commonfees.completed',
@@ -62,7 +68,7 @@ async function startConsumer() {
 
         // Route to appropriate handler
         switch (topic) {
-          case 'kyc.completed':
+          case 'managing.kyc.completed':
             await handleKycEvent(event);
             break;
           case 'legal.contract.drafted':

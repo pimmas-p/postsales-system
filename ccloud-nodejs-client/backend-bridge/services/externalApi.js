@@ -114,7 +114,14 @@ async function getPropertyHistory(propertyId) {
 /**
  * Get property details from Inventory team
  * @param {string} propertyId - Property/Unit ID
- * @returns {Promise<Object>} Property details
+ * @returns {Promise<Object>} Property details including areaSize
+ * @example
+ * Response: {
+ *   propertyId: "UNIT-001",
+ *   status: "AVAILABLE",
+ *   areaSize: 65.5,  // ← Added in future version
+ *   updatedAt: "2026-05-01T10:00:00Z"
+ * }
  */
 async function getPropertyDetails(propertyId) {
   try {
@@ -122,8 +129,15 @@ async function getPropertyDetails(propertyId) {
     
     const response = await inventoryClient.get(`/api/v1/properties/${propertyId}`);
     
-    console.log(`✅ Property details retrieved for: ${propertyId}`);
-    return response.data;
+    // Extract areaSize if available (future support)
+    const propertyData = response.data;
+    if (propertyData.areaSize) {
+      console.log(`✅ Property details retrieved with areaSize: ${propertyData.areaSize} sqm`);
+    } else {
+      console.log(`✅ Property details retrieved for: ${propertyId} (no areaSize in response)`);
+    }
+    
+    return propertyData;
     
   } catch (error) {
     console.error(`❌ Failed to get property details for ${propertyId}:`, error.message);
@@ -349,7 +363,7 @@ async function checkExternalServicesHealth() {
   // Check Payment
   try {
     const startTime = Date.now();
-    await paymentClient.get('/health', { timeout: 5000 });
+    await paymentClient.get('/api/health', { timeout: 5000 });
     healthStatus.payment = {
       available: true,
       responseTime: Date.now() - startTime

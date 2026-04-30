@@ -88,6 +88,7 @@ async function createOnboardingCase(caseData) {
         handover_case_id: caseData.handoverCaseId || null,
         unit_id: caseData.unitId,
         customer_id: caseData.customerId,
+        area_size: caseData.areaSize,
         overall_status: 'pending',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -119,21 +120,30 @@ async function createOnboardingCase(caseData) {
  * @param {string} registrationData.email - Email address
  * @param {string} registrationData.phone - Phone number
  * @param {string} registrationData.passwordHash - Hashed password
+ * @param {number} registrationData.areaSize - Unit area in sqm (optional)
  * @returns {Promise<Object>} Updated case
  */
 async function updateMemberRegistration(id, registrationData) {
   try {
+    // Build update object dynamically
+    const updateData = {
+      email: registrationData.email,
+      phone: registrationData.phone,
+      password_hash: registrationData.passwordHash,
+      registration_status: 'completed',
+      registered_at: new Date().toISOString(),
+      overall_status: 'in_progress',
+      updated_at: new Date().toISOString()
+    };
+
+    // Add area_size only if provided
+    if (registrationData.areaSize !== undefined && registrationData.areaSize !== null) {
+      updateData.area_size = registrationData.areaSize;
+    }
+
     const { data, error } = await supabase
       .from('onboarding_cases')
-      .update({
-        email: registrationData.email,
-        phone: registrationData.phone,
-        password_hash: registrationData.passwordHash,
-        registration_status: 'completed',
-        registered_at: new Date().toISOString(),
-        overall_status: 'in_progress',
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();

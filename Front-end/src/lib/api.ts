@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-// Default to production URL, can be overridden with .env.local for local development
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://postsales-system.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export { API_BASE_URL };
 
@@ -33,7 +32,7 @@ apiClient.interceptors.response.use(
     if (error.response) {
       // Server responded with error
       const errorData = error.response.data?.error;
-      
+
       console.error('❌ API Error Response:', {
         status: error.response.status,
         code: errorData?.code || 'UNKNOWN_ERROR',
@@ -44,12 +43,12 @@ apiClient.interceptors.response.use(
 
       // Attach user-friendly message to error
       error.userMessage = errorData?.message || 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์';
-      
+
       // Show detailed error for 500+ errors
       if (error.response.status >= 500) {
         console.error('🔥 Server Error Details:', errorData);
       }
-      
+
     } else if (error.request) {
       // Request was made but no response
       console.error('❌ Network Error: ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์', {
@@ -63,7 +62,7 @@ apiClient.interceptors.response.use(
       console.error('❌ Request Error:', error.message);
       error.userMessage = 'เกิดข้อผิดพลาดในการส่งคำขอ';
     }
-    
+
     return Promise.reject(error);
   }
 );

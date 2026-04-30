@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const onboardingQueries = require('../db/onboardingQueries');
 const producer = require('../kafka/producer');
+const externalApi = require('../services/externalApi');
 
 /**
  * @swagger
@@ -135,6 +136,9 @@ router.get('/cases/:id', async (req, res) => {
  *                 type: string
  *               customerId:
  *                 type: string
+ *               areaSize:
+ *                 type: number
+ *                 description: Unit area in square meters (optional, for common fees calculation)
  *     responses:
  *       201:
  *         description: Onboarding case created
@@ -145,7 +149,7 @@ router.get('/cases/:id', async (req, res) => {
  */
 router.post('/cases', async (req, res) => {
   try {
-    const { handoverCaseId, unitId, customerId } = req.body;
+    const { handoverCaseId, unitId, customerId, areaSize } = req.body;
 
     // Validation
     if (!unitId || !customerId) {
@@ -158,7 +162,8 @@ router.post('/cases', async (req, res) => {
     const newCase = await onboardingQueries.createOnboardingCase({
       handoverCaseId,
       unitId,
-      customerId
+      customerId,
+      areaSize
     });
 
     // Publish Kafka event
@@ -217,6 +222,17 @@ router.post('/cases', async (req, res) => {
  *                 type: string
  *               passwordHash:
  *                 type: string
+ *               areaSize:
+ *                 type: number
+ *                 description: Unit area in square meters (optional, will use DB value or default 50.0)
+ *               billingCycle:
+ *                 type: string
+ *                 enum: [MONTHLY, QUARTERLY, ANNUALLY]
+ *                 description: Billing cycle preference (default MONTHLY)
+ *               effectiveDate:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Common fee billing start date (default today)
  *     responses:
  *       200:
  *         description: Registration updated
@@ -228,7 +244,7 @@ router.post('/cases', async (req, res) => {
 router.put('/cases/:id/register', async (req, res) => {
   try {
     const { id } = req.params;
-    const { email, phone, passwordHash } = req.body;
+    const { email, phone, passwordHash, areaSize, billingCycle, effectiveDate } = req.body;
 
     // Validation
     if (!email || !phone || !passwordHash) {
@@ -238,25 +254,61 @@ router.put('/cases/:id/register', async (req, res) => {
       });
     }
 
+    // 🔍 Fetch property details from Inventory API for areaSize
+    // Priority: Request Body > Inventory API > Database > Default
+    let finalAreaSize = areaSize; // From request body
+    let propertyDetails = null;
+    
+    // Get current case data
+    const currentCase = await onboardingQueries.getOnboardingCaseById(id);
+    
+    try {
+      propertyDetails = await externalApi.getPropertyDetails(currentCase.unit_id);
+      if (propertyDetails) {
+        console.log(`✅ Property validated via Inventory API: ${propertyDetails.propertyId}`);
+        
+        // Use areaSize from Inventory if available and not provided in request
+        if (!finalAreaSize && propertyDetails.areaSize) {
+          finalAreaSize = propertyDetails.areaSize;
+          console.log(`📐 Using areaSize from Inventory API: ${finalAreaSize} sqm`);
+        }
+      }
+    } catch (inventoryError) {
+      console.warn('⚠️ Could not fetch property details from Inventory:', inventoryError.message);
+      // Continue anyway - Inventory API call is optional
+    }
+
+    // Final fallback: use existing DB value if no new value provided
+    if (!finalAreaSize && currentCase.area_size) {
+      finalAreaSize = currentCase.area_size;
+      console.log(`📐 Using existing areaSize from DB: ${finalAreaSize} sqm`);
+    }
+
     const updatedCase = await onboardingQueries.updateMemberRegistration(id, {
       email,
       phone,
-      passwordHash
+      passwordHash,
+      areaSize: finalAreaSize // Resolved areaSize (request > inventory > db > default)
     });
 
     // Publish Kafka event with billing information for Payment team
     // Per TEAM_INTEGRATION.md Section 8.2 - Payment needs this for account receivable setup
+    // Team 6 CSV format: customerId, unitId, areaSize, feeRatePerSqm, billingCycle, effectiveDate, propertyId
     try {
+      // 🔧 Configuration for common fees calculation
+      const DEFAULT_AREA_SIZE = 50.0; // sqm - fallback if no data
+      const DEFAULT_FEE_RATE = 45.0; // THB per sqm - fallback if no data (45.0); // THB per sqm
+      const DEFAULT_BILLING_CYCLE = 'MONTHLY';
+
       await producer.publishMemberRegistered({
-        memberId: updatedCase.id,
-        caseId: updatedCase.id,
-        unitId: updatedCase.unit_id,
         customerId: updatedCase.customer_id,
-        email: updatedCase.email,
-        phone: updatedCase.phone,
-        areaSize: updatedCase.area_size || null,
-        effectiveDate: updatedCase.registered_at || new Date().toISOString(),
-        billingCycle: 'monthly', // Default billing cycle
+        unitId: updatedCase.unit_id,
+        // ✅ Use request body > DB value > default
+        areaSize: areaSize || updatedCase.area_size || DEFAULT_AREA_SIZE,
+        feeRatePerSqm: DEFAULT_FEE_RATE,
+        effectiveDate: effectiveDate || updatedCase.registered_at || new Date().toISOString(),
+        billingCycle: billingCycle || DEFAULT_BILLING_CYCLE, // Allow user choice
+        propertyId: updatedCase.unit_id, // Use unitId as propertyId
         timestamp: new Date().toISOString()
       });
       console.log(`✅ Member registration published to Payment team for billing setup`);

@@ -47,6 +47,17 @@ KAFKA_DISABLE_SSL_VERIFICATION=false
 **💡 TIP**: Copy actual Kafka credentials from your local `.env` file  
 **Note**: ถ้าไม่ต้องการใช้ Kafka ให้ข้ามส่วนนี้ หรือตั้ง `KAFKA_ENABLED=false`
 
+### External Team Service URLs (มี default อยู่แล้ว - ไม่บังคับ)
+```bash
+INVENTORY_SERVICE_URL=https://inventory-service.onrender.com
+LEGAL_CONTRACT_SERVICE_URL=https://contract-service-h5fs.onrender.com
+LEGAL_WARRANTY_SERVICE_URL=https://warranty-service-gtv0.onrender.com
+LEGAL_ACQUISITION_SERVICE_URL=https://acquisition-service.onrender.com
+PAYMENT_SERVICE_URL=https://cstu-payment-team.onrender.com
+```
+
+**Note**: ถ้าทีมอื่นเปลี่ยน URL ให้อัพเดตตรงนี้
+
 ---
 
 1. **Push code to GitHub**

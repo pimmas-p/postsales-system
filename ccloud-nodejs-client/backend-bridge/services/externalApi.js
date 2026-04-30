@@ -6,10 +6,19 @@ const axios = require('axios');
  */
 
 // Base URLs for external team services
+// These URLs point to other team's microservices
 const INVENTORY_BASE_URL = process.env.INVENTORY_SERVICE_URL || 'https://inventory-service.onrender.com';
 const LEGAL_CONTRACT_BASE_URL = process.env.LEGAL_CONTRACT_SERVICE_URL || 'https://contract-service-h5fs.onrender.com';
 const LEGAL_WARRANTY_BASE_URL = process.env.LEGAL_WARRANTY_SERVICE_URL || 'https://warranty-service-gtv0.onrender.com';
-const PAYMENT_BASE_URL = process.env.PAYMENT_SERVICE_URL || 'https://payment-service.onrender.com';
+const LEGAL_ACQUISITION_BASE_URL = process.env.LEGAL_ACQUISITION_SERVICE_URL || 'https://acquisition-service.onrender.com';
+const PAYMENT_BASE_URL = process.env.PAYMENT_SERVICE_URL || 'https://cstu-payment-team.onrender.com';
+
+console.log('🔗 External Service URLs:');
+console.log('  - Inventory:', INVENTORY_BASE_URL);
+console.log('  - Legal Contract:', LEGAL_CONTRACT_BASE_URL);
+console.log('  - Legal Warranty:', LEGAL_WARRANTY_BASE_URL);
+console.log('  - Legal Acquisition:', LEGAL_ACQUISITION_BASE_URL);
+console.log('  - Payment:', PAYMENT_BASE_URL);
 
 // Create axios instances with timeouts
 const inventoryClient = axios.create({
@@ -240,22 +249,46 @@ async function getWarrantyClaimStatus(claimId) {
 
 /**
  * Get payment details for a customer/unit
+ * NOTE: Payment team endpoint structure needs confirmation
+ * Possible endpoints:
+ *   - /api/payments/{customerId}/{unitId}
+ *   - /api/payments/customer/{customerId}
+ *   - /settlement/api/settlements/summary
+ * 
  * @param {string} customerId - Customer ID
  * @param {string} unitId - Unit ID (optional)
  * @returns {Promise<Object>} Payment details and status
  */
 async function getPaymentDetails(customerId, unitId = null) {
   try {
-    const params = unitId ? { unitId } : {};
-    console.log(`📞 Calling Payment API: GET /api/payments/customer/${customerId}`);
+    // Try different endpoint patterns
+    let endpoint;
+    if (unitId) {
+      endpoint = `/api/payments/${customerId}/${unitId}`;
+    } else {
+      endpoint = `/api/payments/customer/${customerId}`;
+    }
     
-    const response = await paymentClient.get(`/api/payments/customer/${customerId}`, { params });
+    console.log(`📞 Calling Payment API: GET ${endpoint}`);
+    
+    const response = await paymentClient.get(endpoint);
     
     console.log(`✅ Payment details retrieved for customer: ${customerId}`);
     return response.data;
     
   } catch (error) {
-    console.error(`❌ Failed to get payment details for customer ${customerId}:`, error.message);
+    console.error(`❌ Failed to get payment details for customer ${customerId}:`, {
+      message: error.message,
+      status: error.response?.status,
+      endpoint: error.config?.url,
+      baseURL: PAYMENT_BASE_URL
+    });
+    
+    // Return graceful null if service is unavailable (503)
+    if (error.response?.status === 503) {
+      console.warn('⚠️  Payment service is currently unavailable (503)');
+    }
+    
     return null;
   }
 }

@@ -294,15 +294,21 @@ Post-Sales Defect Flow:
 
 ### 7.3 REST APIs
 
-**Settlement API:** `{BASEURL}/settlement/api/summary`
+**Base URL:** `https://cstu-payment-team.onrender.com`
+
+**Settlement API:** 
+- **Endpoint:** `/settlement/api/settlements/summary`
 - **Method:** GET
-- **Consumer:** CEO
+- **Consumer:** CEO, Post-Sales
 - **Description:** Calculate daily, monthly, yearly, all-time sales
 
-**Invoice API:** `{BASEURL}/invoice/api/invoice/{invoiceId}`
-- **Method:** GET
-- **Consumer:** Legal, Sales (optional)
-- **Description:** Get invoice and payment status
+**Invoice/Payment API:** 
+- **Endpoint:** `/api/payments/{customerId}/{unitId}` (assumed)
+- **Method:** GET  
+- **Consumer:** Post-Sales
+- **Description:** Get payment details for customer and unit
+
+**Health Check:** `/api/health`
 
 ### 7.4 Payload Structure
 

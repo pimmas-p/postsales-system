@@ -23,6 +23,7 @@ interface RegisterMemberDialogProps {
   onClose: () => void;
   caseId: string;
   unitId: string;
+  onSuccess?: () => void;
 }
 
 export const RegisterMemberDialog: React.FC<RegisterMemberDialogProps> = ({
@@ -30,6 +31,7 @@ export const RegisterMemberDialog: React.FC<RegisterMemberDialogProps> = ({
   onClose,
   caseId,
   unitId,
+  onSuccess,
 }) => {
   const queryClient = useQueryClient();
   
@@ -66,6 +68,7 @@ export const RegisterMemberDialog: React.FC<RegisterMemberDialogProps> = ({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['onboarding'] });
+      onSuccess?.();
       onClose();
       setError(null);
     },

@@ -6,6 +6,7 @@ import { HomePage } from './pages/HomePage';
 import { HandoverDashboard } from './pages/HandoverDashboard';
 import { HandoverDetail } from './pages/HandoverDetail';
 import { OnboardingDashboard } from './pages/OnboardingDashboard';
+import { OnboardingDetail } from './pages/OnboardingDetail';
 import { DefectDashboard } from './pages/DefectDashboard';
 import { DefectDetail } from './pages/DefectDetail';
 
@@ -47,6 +48,7 @@ function App() {
               <Route path="handover" element={<HandoverDashboard />} />
               <Route path="handover/:id" element={<HandoverDetail />} />
               <Route path="onboarding" element={<OnboardingDashboard />} />
+              <Route path="onboarding/:id" element={<OnboardingDetail />} />
               <Route path="defects" element={<DefectDashboard />} />
               <Route path="defects/:id" element={<DefectDetail />} />
               <Route path="*" element={<Navigate to="/" replace />} />

@@ -169,6 +169,40 @@ async function getContractDetails(contractId) {
   }
 }
 
+/**
+ * Get contract by unit ID from Legal Contract Service
+ * @param {string} unitId - Unit/Property ID
+ * @returns {Promise<Object>} Contract details including file URL
+ * @example
+ * Response: {
+ *   contractId: "CONTRACT-001",
+ *   unitId: "UNIT-001",
+ *   customerId: "CUST-001",
+ *   status: "drafted",
+ *   fileUrl: "https://...",  // ← Contract document URL
+ *   draftedAt: "2026-04-30T10:00:00Z"
+ * }
+ */
+async function getContractByUnit(unitId) {
+  try {
+    console.log(`📞 Calling Legal Contract API: GET /api/contracts/unit/${unitId}`);
+    
+    const response = await legalContractClient.get(`/api/contracts/unit/${unitId}`);
+    
+    if (response.data && response.data.fileUrl) {
+      console.log(`✅ Contract retrieved for unit ${unitId} with document URL`);
+    } else {
+      console.log(`✅ Contract retrieved for unit ${unitId} (no document URL)`);
+    }
+    
+    return response.data;
+    
+  } catch (error) {
+    console.error(`❌ Failed to get contract for unit ${unitId}:`, error.message);
+    return null;
+  }
+}
+
 // ==========================================
 // LEGAL TEAM APIs - Warranty Service
 // ==========================================
@@ -382,6 +416,7 @@ module.exports = {
   
   // Legal Contract APIs
   getContractDetails,
+  getContractByUnit,
   
   // Legal Warranty APIs
   getWarrantyCoverage,

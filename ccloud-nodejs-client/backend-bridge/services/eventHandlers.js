@@ -10,6 +10,12 @@ const {
   storeWarrantyCoverage
 } = require('../db/defectQueries');
 
+const {
+  updateContractDocumentAuto
+} = require('../db/onboardingQueries');
+
+const externalApi = require('./externalApi');
+
 /**
  * Handle KYC completed event
  * Managing team (Team 4) - No official documentation, using fallback support
@@ -203,6 +209,7 @@ async function handleCommonFeesEvent(event) {
 /**
  * Handle Warranty Coverage Registered event from Legal team
  * Store warranty coverage info for defect management
+ * Auto-fill contract document for onboarding cases
  * Team 5 (Legal) format - camelCase as per Team 5 CSV documentation
  */
 async function handleWarrantyRegisteredEvent(event) {
@@ -217,7 +224,7 @@ async function handleWarrantyRegisteredEvent(event) {
   const endsAt = event.endsAt;
   const coveredCategories = event.coveredCategories;
   
-  // Store warranty coverage information
+  // Store warranty coverage information for defect management
   try {
     await storeWarrantyCoverage({
       contractId,
@@ -233,6 +240,41 @@ async function handleWarrantyRegisteredEvent(event) {
     console.log(`   📋 Categories: ${coveredCategories?.join(', ') || 'All'}`);
   } catch (error) {
     console.error(`   ❌ Failed to store warranty coverage:`, error.message);
+  }
+
+  // Auto-fill contract document for onboarding case
+  try {
+    console.log(`   🔍 Checking for onboarding case to auto-fill contract...`);
+    
+    // Fetch contract document from Legal API
+    let contractDocumentUrl = null;
+    
+    // Try getting contract by unit ID first
+    const contractData = await externalApi.getContractByUnit(unitId);
+    if (contractData && contractData.fileUrl) {
+      contractDocumentUrl = contractData.fileUrl;
+      console.log(`   ✅ Contract document URL retrieved from Legal API`);
+    } else {
+      console.log(`   ⚠️  No contract document URL available from Legal API`);
+    }
+
+    // Update onboarding case if contract document available
+    if (contractDocumentUrl) {
+      const updatedCase = await updateContractDocumentAuto(unitId, {
+        contractId,
+        contractDocumentUrl
+      });
+
+      if (updatedCase) {
+        console.log(`   ✨ Contract document auto-filled for onboarding case`);
+      }
+    } else {
+      console.log(`   ℹ️  Skipping contract auto-fill (no document URL)`);
+    }
+
+  } catch (error) {
+    console.error(`   ❌ Failed to auto-fill contract document:`, error.message);
+    // Continue even if auto-fill fails
   }
 }
 

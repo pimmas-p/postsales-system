@@ -52,10 +52,15 @@ export const onboardingApi = {
 
   // Upload documents
   uploadDocuments: async (id: string, data: {
-    idDocumentUrl: string;
     contractDocumentUrl: string;
   }): Promise<OnboardingCase> => {
     const response = await apiClient.put(`/api/onboarding/cases/${id}/documents`, data);
+    return response.data.data;
+  },
+
+  // Manually fetch contract from Legal API
+  fetchContractFromLegal: async (id: string): Promise<OnboardingCase> => {
+    const response = await apiClient.post(`/api/onboarding/cases/${id}/fetch-contract`);
     return response.data.data;
   },
 

@@ -8,6 +8,7 @@ const {
 } = require('../db/queries');
 const { publishHandoverCompleted } = require('../kafka/producer');
 const externalApi = require('../services/externalApi');
+const onboardingQueries = require('../db/onboardingQueries');
 
 /**
  * GET /api/handover/cases
@@ -99,7 +100,7 @@ router.get('/cases/:id', async (req, res) => {
 
 /**
  * PUT /api/handover/cases/:id/complete
- * Mark handover as completed and publish event
+ * Mark handover as completed, publish event, and create onboarding case
  */
 router.put('/cases/:id/complete', async (req, res) => {
   try {
@@ -123,6 +124,20 @@ router.put('/cases/:id/complete', async (req, res) => {
 
     // Publish event to Kafka
     await publishHandoverCompleted(completedCase);
+
+    // Automatically create onboarding case
+    try {
+      const onboardingCase = await onboardingQueries.createOnboardingCase({
+        handoverCaseId: completedCase.id,
+        unitId: completedCase.unit_id,
+        customerId: completedCase.customer_id,
+        areaSize: null // Will be set during member registration
+      });
+      console.log(`✅ Onboarding case created automatically: ${onboardingCase.id}`);
+    } catch (onboardingError) {
+      console.error('❌ Failed to create onboarding case:', onboardingError.message);
+      // Continue even if onboarding creation fails - don't block handover completion
+    }
 
     res.json({
       success: true,
@@ -276,6 +291,71 @@ router.get('/:id/payment', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching payment for handover:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/handover/migrate-to-onboarding
+ * Create onboarding cases for all completed handover cases (one-time migration)
+ */
+router.post('/migrate-to-onboarding', async (req, res) => {
+  try {
+    console.log('🔄 Starting onboarding migration...');
+    
+    // Get all completed handover cases
+    const completedCases = await getAllHandoverCases({ status: 'completed' });
+    
+    const results = {
+      total: completedCases.length,
+      created: 0,
+      skipped: 0,
+      errors: []
+    };
+
+    for (const handoverCase of completedCases) {
+      try {
+        // Check if onboarding case already exists
+        const existing = await onboardingQueries.getAllOnboardingCases({
+          unitId: handoverCase.unit_id,
+          customerId: handoverCase.customer_id
+        });
+
+        if (existing && existing.length > 0) {
+          console.log(`⏭️  Skipped: Onboarding already exists for ${handoverCase.unit_id}`);
+          results.skipped++;
+          continue;
+        }
+
+        // Create onboarding case
+        const onboardingCase = await onboardingQueries.createOnboardingCase({
+          handoverCaseId: handoverCase.id,
+          unitId: handoverCase.unit_id,
+          customerId: handoverCase.customer_id,
+          areaSize: null
+        });
+
+        console.log(`✅ Created onboarding case for ${handoverCase.unit_id}`);
+        results.created++;
+      } catch (error) {
+        console.error(`❌ Error for ${handoverCase.unit_id}:`, error.message);
+        results.errors.push({
+          unitId: handoverCase.unit_id,
+          error: error.message
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Migration completed',
+      results
+    });
+  } catch (error) {
+    console.error('Error in migration:', error);
     res.status(500).json({
       success: false,
       error: error.message

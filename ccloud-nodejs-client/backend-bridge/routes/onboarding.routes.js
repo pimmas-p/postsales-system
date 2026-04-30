@@ -349,13 +349,11 @@ router.put('/cases/:id/register', async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - idDocumentUrl
  *               - contractDocumentUrl
  *             properties:
- *               idDocumentUrl:
- *                 type: string
  *               contractDocumentUrl:
  *                 type: string
+ *                 description: Contract document URL or Base64
  *     responses:
  *       200:
  *         description: Documents uploaded
@@ -367,18 +365,17 @@ router.put('/cases/:id/register', async (req, res) => {
 router.put('/cases/:id/documents', async (req, res) => {
   try {
     const { id } = req.params;
-    const { idDocumentUrl, contractDocumentUrl } = req.body;
+    const { contractDocumentUrl } = req.body;
 
     // Validation
-    if (!idDocumentUrl || !contractDocumentUrl) {
+    if (!contractDocumentUrl) {
       return res.status(400).json({
         success: false,
-        error: 'idDocumentUrl and contractDocumentUrl are required'
+        error: 'contractDocumentUrl is required'
       });
     }
 
     const updatedCase = await onboardingQueries.updateDocuments(id, {
-      idDocumentUrl,
       contractDocumentUrl
     });
 
@@ -467,6 +464,51 @@ router.put('/cases/:id/complete', async (req, res) => {
   } catch (error) {
     console.error('Error completing onboarding:', error);
     res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/onboarding/cases/{id}/fetch-contract:
+ *   post:
+ *     summary: Manually fetch contract from Legal API
+ *     tags: [Onboarding]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Contract fetched successfully
+ *       404:
+ *         description: Case not found or contract not available
+ *       500:
+ *         description: Server error
+ */
+router.post('/cases/:id/fetch-contract', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const updatedCase = await onboardingQueries.manualFetchContractFromLegal(id);
+
+    res.json({
+      success: true,
+      data: updatedCase,
+      message: 'Contract fetched successfully from Legal API'
+    });
+  } catch (error) {
+    console.error('Error fetching contract:', error);
+    
+    const statusCode = error.message === 'Onboarding case not found' ? 404 : 
+                      error.message.includes('No contract found') ? 404 : 500;
+    
+    res.status(statusCode).json({
       success: false,
       error: error.message
     });

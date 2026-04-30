@@ -10,7 +10,6 @@ import {
   Button,
   CircularProgress,
   Alert,
-  IconButton,
   Stack,
   Divider,
   Chip,
@@ -19,9 +18,6 @@ import {
   ArrowBack, 
   CheckCircle,
   Person,
-  Phone,
-  Email,
-  Home,
   Description,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
@@ -68,14 +64,21 @@ export const OnboardingDetail: React.FC = () => {
   return (
     <Box>
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-        <IconButton onClick={() => navigate('/onboarding')}>
-          <ArrowBack />
-        </IconButton>
-        <Typography variant="h4" sx={{ fontWeight: 700, flexGrow: 1 }}>
-          Onboarding Case Details
-        </Typography>
-        <StatusChip status={onboardingCase.overall_status} size="medium" />
+      <Box sx={{ mb: 3 }}>
+        <Button 
+          startIcon={<ArrowBack />} 
+          onClick={() => navigate('/onboarding')}
+          sx={{ mb: 2 }}
+        >
+          Back to Onboarding
+        </Button>
+        
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            Onboarding Case Details
+          </Typography>
+          <StatusChip status={onboardingCase.overall_status} size="medium" />
+        </Box>
       </Box>
 
       <Grid container spacing={3}>
@@ -161,7 +164,8 @@ export const OnboardingDetail: React.FC = () => {
               </Stack>
               {!isRegistered && !isCompleted && (
                 <Button 
-                  variant="contained" 
+                  variant="outlined"
+                  size="medium"
                   onClick={() => setRegisterDialogOpen(true)}
                 >
                   Register Member
@@ -248,7 +252,8 @@ export const OnboardingDetail: React.FC = () => {
                 )}
                 {isRegistered && !isDocumentsUploaded && !isCompleted && (
                   <Button 
-                    variant="contained" 
+                    variant="outlined"
+                    size="medium"
                     onClick={() => setUploadDialogOpen(true)}
                   >
                     Upload Contract
@@ -309,8 +314,9 @@ export const OnboardingDetail: React.FC = () => {
               </Stack>
               {isRegistered && isDocumentsUploaded && !isCompleted && (
                 <Button 
-                  variant="contained" 
+                  variant="outlined"
                   color="success"
+                  size="medium"
                   onClick={() => setCompleteDialogOpen(true)}
                 >
                   Complete Onboarding

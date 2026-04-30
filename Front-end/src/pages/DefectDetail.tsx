@@ -37,7 +37,6 @@ import {
   ShieldOutlined,
   History,
   PhotoCamera,
-  AttachFile
 } from '@mui/icons-material';
 import { StatusChip } from '../components/StatusChip';
 import { format } from 'date-fns';
@@ -152,9 +151,9 @@ export const DefectDetail: React.FC = () => {
   };
 
   return (
-    <Box>
+    <div style={{ padding: '0 20px' }}>
       {/* Header */}
-      <Box sx={{ mb: 3 }}>
+      <div style={{ marginBottom: '24px' }}>
         <Button 
           startIcon={<ArrowBack />} 
           onClick={() => navigate('/defects')}
@@ -163,12 +162,12 @@ export const DefectDetail: React.FC = () => {
           Back to Defects
         </Button>
         
-        <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>
+        <div className="d-flex justify-content-between align-items-center">
+          <div>
             <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
               {defect.title}
             </Typography>
-            <Stack sx={{ flexDirection: 'row', alignItems: 'center' }} spacing={2}>
+            <div className="d-flex align-items-center" style={{ gap: '16px' }}>
               <Chip label={`#${defect.defect_number}`} variant="outlined" size="small" />
               <StatusChip status={defect.status} />
               <Chip 
@@ -182,87 +181,65 @@ export const DefectDetail: React.FC = () => {
                 size="small"
                 variant="outlined"
               />
-            </Stack>
-          </Box>
-          
-          <Stack sx={{ flexDirection: 'row' }} spacing={2}>
-            {defect.status === 'reported' && (
-              <Button 
-                variant="outlined" 
-                startIcon={<Schedule />}
-                onClick={() => setScheduleDialogOpen(true)}
-              >
-                Schedule Repair
-              </Button>
-            )}
-            {defect.status === 'scheduled' && (
-              <Button 
-                variant="contained" 
-                color="success"
-                startIcon={<CheckCircle />}
-                onClick={() => setCloseDialogOpen(true)}
-              >
-                Close Case
-              </Button>
-            )}
-          </Stack>
-        </Stack>
-      </Box>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <Grid container spacing={3}>
+      <div className="row g-3">
         {/* Left Column */}
-        <Grid item xs={12} md={8}>
+        <div className="col-8">
           {/* Defect Information */}
           <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'divider' }}>
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
               Defect Information
             </Typography>
             
-            <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid item xs={6}>
-                <Stack sx={{ flexDirection: 'row' }} spacing={1} alignItems="center">
+            <div className="row g-3" style={{ marginBottom: '24px' }}>
+              <div className="col-6">
+                <div className="d-flex align-items-center" style={{ gap: '8px' }}>
                   <Person color="action" />
-                  <Box>
+                  <div>
                     <Typography variant="caption" color="text.secondary">Reported By</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>{defect.reported_by}</Typography>
-                  </Box>
-                </Stack>
-              </Grid>
+                  </div>
+                </div>
+              </div>
               
-              <Grid item xs={6}>
-                <Stack sx={{ flexDirection: 'row' }} spacing={1} alignItems="center">
+              <div className="col-6">
+                <div className="d-flex align-items-center" style={{ gap: '8px' }}>
                   <CalendarToday color="action" />
-                  <Box>
+                  <div>
                     <Typography variant="caption" color="text.secondary">Reported Date</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {format(new Date(defect.reported_at), 'MMM dd, yyyy')}
                     </Typography>
-                  </Box>
-                </Stack>
-              </Grid>
+                  </div>
+                </div>
+              </div>
               
-              <Grid item xs={6}>
-                <Stack sx={{ flexDirection: 'row' }} spacing={1} alignItems="center">
+              <div className="col-6">
+                <div className="d-flex align-items-center" style={{ gap: '8px' }}>
                   <Home color="action" />
-                  <Box>
+                  <div>
                     <Typography variant="caption" color="text.secondary">Unit ID</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>{defect.unit_id}</Typography>
-                  </Box>
-                </Stack>
-              </Grid>
+                  </div>
+                </div>
+              </div>
 
               {defect.assigned_to && (
-                <Grid item xs={6}>
-                  <Stack sx={{ flexDirection: 'row' }} spacing={1} alignItems="center">
+                <div className="col-6">
+                  <div className="d-flex align-items-center" style={{ gap: '8px' }}>
                     <Build color="action" />
-                    <Box>
+                    <div>
                       <Typography variant="caption" color="text.secondary">Assigned To</Typography>
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>{defect.assigned_to}</Typography>
-                    </Box>
-                  </Stack>
-                </Grid>
+                    </div>
+                  </div>
+                </div>
               )}
-            </Grid>
+            </div>
 
             <Divider sx={{ my: 2 }} />
 
@@ -301,16 +278,16 @@ export const DefectDetail: React.FC = () => {
           {/* Photo Gallery */}
           {(defect.photo_before_url || defect.photo_after_url) && (
             <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'divider' }}>
-              <Stack sx={{ flexDirection: 'row', alignItems: 'center', mb: 2 }} spacing={1}>
+              <div className="d-flex align-items-center" style={{ gap: '8px', marginBottom: '16px' }}>
                 <PhotoCamera color="action" />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                   Photos
                 </Typography>
-              </Stack>
+              </div>
               
-              <Grid container spacing={2}>
+              <div className="row g-2">
                 {defect.photo_before_url && (
-                  <Grid item xs={12} sm={6}>
+                  <div className="col-6">
                     <Card variant="outlined">
                       <CardContent>
                         <Typography variant="caption" color="text.secondary" gutterBottom>
@@ -330,11 +307,11 @@ export const DefectDetail: React.FC = () => {
                         />
                       </CardContent>
                     </Card>
-                  </Grid>
+                  </div>
                 )}
                 
                 {defect.photo_after_url && (
-                  <Grid item xs={12} sm={6}>
+                  <div className="col-6">
                     <Card variant="outlined">
                       <CardContent>
                         <Typography variant="caption" color="text.secondary" gutterBottom>
@@ -354,27 +331,27 @@ export const DefectDetail: React.FC = () => {
                         />
                       </CardContent>
                     </Card>
-                  </Grid>
+                  </div>
                 )}
-              </Grid>
+              </div>
             </Paper>
           )}
 
           {/* Unit History Timeline */}
           {unitHistory && (
             <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider' }}>
-              <Stack sx={{ flexDirection: 'row', alignItems: 'center', mb: 2 }} spacing={1}>
+              <div className="d-flex align-items-center" style={{ gap: '8px', marginBottom: '16px' }}>
                 <History color="action" />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                   Unit History
                 </Typography>
-              </Stack>
+              </div>
               
               {unitHistory.events && unitHistory.events.length > 0 ? (
-                <Stack spacing={2}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {unitHistory.events.slice(0, 5).map((event: any, index: number) => (
-                    <Box key={index}>
-                      <Stack direction="row" spacing={2}>
+                    <div key={index}>
+                      <div className="d-flex" style={{ gap: '16px' }}>
                         <Avatar 
                           sx={{ 
                             width: 32, 
@@ -385,7 +362,7 @@ export const DefectDetail: React.FC = () => {
                         >
                           {index + 1}
                         </Avatar>
-                        <Box sx={{ flex: 1 }}>
+                        <div style={{ flex: 1 }}>
                           <Typography variant="body2" fontWeight={600}>
                             {event.event_type || event.title}
                           </Typography>
@@ -397,12 +374,12 @@ export const DefectDetail: React.FC = () => {
                               {event.description}
                             </Typography>
                           )}
-                        </Box>
-                      </Stack>
+                        </div>
+                      </div>
                       {index < unitHistory.events.length - 1 && <Divider sx={{ mt: 2 }} />}
-                    </Box>
+                    </div>
                   ))}
-                </Stack>
+                </div>
               ) : (
                 <Typography variant="body2" color="text.secondary">
                   No history available for this unit
@@ -410,10 +387,10 @@ export const DefectDetail: React.FC = () => {
               )}
             </Paper>
           )}
-        </Grid>
+        </div>
 
         {/* Right Column */}
-        <Grid item xs={12} md={4}>
+        <div className="col-4">
           {/* Warranty Coverage */}
           <Paper 
             elevation={0} 
@@ -425,12 +402,12 @@ export const DefectDetail: React.FC = () => {
               bgcolor: warranty?.is_covered ? 'success.50' : 'background.paper'
             }}
           >
-            <Stack sx={{ flexDirection: 'row', alignItems: 'center', mb: 2 }} spacing={1}>
+            <div className="d-flex align-items-center" style={{ gap: '8px', marginBottom: '16px' }}>
               <ShieldOutlined color={warranty?.is_covered ? 'success' : 'action'} />
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Warranty Coverage
               </Typography>
-            </Stack>
+            </div>
 
             {warranty ? (
               <>
@@ -441,7 +418,7 @@ export const DefectDetail: React.FC = () => {
                   {warranty.is_covered ? 'This defect is covered by warranty' : 'Not covered by warranty'}
                 </Alert>
 
-                <Stack spacing={2}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <Box>
                     <Typography variant="caption" color="text.secondary">Contract ID</Typography>
                     <Typography variant="body2" fontWeight={600}>
@@ -463,14 +440,14 @@ export const DefectDetail: React.FC = () => {
                       <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
                         Covered Categories
                       </Typography>
-                      <Stack direction="row" spacing={1} flexWrap="wrap">
+                      <div className="d-flex flex-wrap" style={{ gap: '8px' }}>
                         {warranty.covered_categories.map((cat: string, idx: number) => (
                           <Chip key={idx} label={cat} size="small" variant="outlined" />
                         ))}
-                      </Stack>
+                      </div>
                     </Box>
                   )}
-                </Stack>
+                </div>
               </>
             ) : (
               <Typography variant="body2" color="text.secondary">
@@ -485,7 +462,7 @@ export const DefectDetail: React.FC = () => {
               Actions
             </Typography>
             
-            <Stack spacing={2}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {defect.status === 'reported' && (
                 <Button 
                   fullWidth 
@@ -508,23 +485,7 @@ export const DefectDetail: React.FC = () => {
                   Close Case
                 </Button>
               )}
-
-              <Button 
-                fullWidth 
-                variant="outlined" 
-                startIcon={<PhotoCamera />}
-              >
-                Upload Photos
-              </Button>
-
-              <Button 
-                fullWidth 
-                variant="outlined" 
-                startIcon={<AttachFile />}
-              >
-                Add Notes
-              </Button>
-            </Stack>
+            </div>
           </Paper>
 
           {/* Timeline */}
@@ -533,7 +494,7 @@ export const DefectDetail: React.FC = () => {
               Timeline
             </Typography>
             
-            <Stack spacing={2}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <Box>
                 <Typography variant="caption" color="text.secondary">Reported</Typography>
                 <Typography variant="body2">
@@ -558,10 +519,10 @@ export const DefectDetail: React.FC = () => {
                   </Typography>
                 </Box>
               )}
-            </Stack>
+            </div>
           </Paper>
-        </Grid>
-      </Grid>
+        </div>
+      </div>
 
       {/* Schedule Repair Dialog */}
       <Dialog 
@@ -572,7 +533,7 @@ export const DefectDetail: React.FC = () => {
       >
         <DialogTitle>Schedule Repair</DialogTitle>
         <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '8px' }}>
             <TextField
               label="Contractor Name"
               required
@@ -597,7 +558,7 @@ export const DefectDetail: React.FC = () => {
               value={scheduleData.repairNotes}
               onChange={(e) => setScheduleData({ ...scheduleData, repairNotes: e.target.value })}
             />
-          </Stack>
+          </div>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setScheduleDialogOpen(false)}>Cancel</Button>
@@ -620,7 +581,7 @@ export const DefectDetail: React.FC = () => {
       >
         <DialogTitle>Close Defect Case</DialogTitle>
         <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '8px' }}>
             <TextField
               label="Closed By"
               required
@@ -643,7 +604,7 @@ export const DefectDetail: React.FC = () => {
               onChange={(e) => setCloseData({ ...closeData, photoAfterUrl: e.target.value })}
               placeholder="https://..."
             />
-          </Stack>
+          </div>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCloseDialogOpen(false)}>Cancel</Button>
@@ -657,6 +618,6 @@ export const DefectDetail: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </div>
   );
 };

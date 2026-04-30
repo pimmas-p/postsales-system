@@ -117,9 +117,9 @@ export const DefectDashboard: React.FC = () => {
   }
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700 }}>
+    <div style={{ padding: '0 20px' }}>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <Typography variant="h4" sx={{ fontWeight: 600 }}>
           Snagging & Defects
         </Typography>
         <Button
@@ -129,62 +129,70 @@ export const DefectDashboard: React.FC = () => {
         >
           Report Defect
         </Button>
-      </Box>
+      </div>
 
       {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Box display="flex" gap={2} flexWrap="wrap">
-          <FormControl sx={{ minWidth: 150 }}>
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={filters.status}
-              label="Status"
-              onChange={(e) => setStatusFilter(e.target.value as any)}
-            >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="reported">Reported</MenuItem>
-              <MenuItem value="scheduled">Scheduled</MenuItem>
-              <MenuItem value="closed">Closed</MenuItem>
-            </Select>
-          </FormControl>
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <div className="row g-3">
+          <div className="col-2">
+            <FormControl fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={filters.status}
+                label="Status"
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="reported">Reported</MenuItem>
+                <MenuItem value="scheduled">Scheduled</MenuItem>
+                <MenuItem value="closed">Closed</MenuItem>
+              </Select>
+            </FormControl>
+          </div>
 
-          <FormControl sx={{ minWidth: 150 }}>
-            <InputLabel>Priority</InputLabel>
-            <Select
-              value={filters.priority}
-              label="Priority"
-              onChange={(e) => setPriorityFilter(e.target.value as any)}
-            >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="critical">Critical</MenuItem>
-              <MenuItem value="high">High</MenuItem>
-              <MenuItem value="medium">Medium</MenuItem>
-              <MenuItem value="low">Low</MenuItem>
-            </Select>
-          </FormControl>
+          <div className="col-2">
+            <FormControl fullWidth>
+              <InputLabel>Priority</InputLabel>
+              <Select
+                value={filters.priority}
+                label="Priority"
+                onChange={(e) => setPriorityFilter(e.target.value as any)}
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="critical">Critical</MenuItem>
+                <MenuItem value="high">High</MenuItem>
+                <MenuItem value="medium">Medium</MenuItem>
+                <MenuItem value="low">Low</MenuItem>
+              </Select>
+            </FormControl>
+          </div>
 
-          <FormControl sx={{ minWidth: 180 }}>
-            <InputLabel>Category</InputLabel>
-            <Select
-              value={filters.category}
-              label="Category"
-              onChange={(e) => setCategoryFilter(e.target.value as any)}
-            >
-              <MenuItem value="all">All</MenuItem>
-              {Object.entries(DEFECT_CATEGORIES).map(([key, label]) => (
-                <MenuItem key={key} value={key}>{label}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <div className="col-2">
+            <FormControl fullWidth>
+              <InputLabel>Category</InputLabel>
+              <Select
+                value={filters.category}
+                label="Category"
+                onChange={(e) => setCategoryFilter(e.target.value as any)}
+              >
+                <MenuItem value="all">All</MenuItem>
+                {Object.entries(DEFECT_CATEGORIES).map(([key, label]) => (
+                  <MenuItem key={key} value={key}>{label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
 
-          <TextField
-            label="Search by Defect # / Unit ID / Title"
-            variant="outlined"
-            value={filters.searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            sx={{ flexGrow: 1, minWidth: 300 }}
-          />
-        </Box>
+          <div className="col-6">
+            <TextField
+              fullWidth
+              label="Search by Defect # / Unit ID / Title"
+              variant="outlined"
+              value={filters.searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
       </Paper>
 
       {/* Results Count */}
@@ -193,19 +201,19 @@ export const DefectDashboard: React.FC = () => {
       </Typography>
 
       {/* Table */}
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} sx={{ '& .MuiTableRow-root:hover': { backgroundColor: '#f8f9fa' } }}>
         <Table>
-          <TableHead>
+          <TableHead sx={{ backgroundColor: '#f8f9fa' }}>
             <TableRow>
-              <TableCell>Defect #</TableCell>
-              <TableCell>Unit ID</TableCell>
-              <TableCell>Title</TableCell>
-              <TableCell align="center">Category</TableCell>
-              <TableCell align="center">Priority</TableCell>
-              <TableCell align="center">Assigned To</TableCell>
-              <TableCell align="center">Status</TableCell>
-              <TableCell align="center">Reported</TableCell>
-              <TableCell align="center">Actions</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Defect #</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Unit ID</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Title</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Category</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Priority</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Assigned To</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Status</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Reported</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -226,12 +234,11 @@ export const DefectDashboard: React.FC = () => {
                 return (
                   <TableRow 
                     key={defect.id} 
-                    hover
                     sx={{
                       bgcolor: defect.priority === 'critical' 
-                        ? 'error.50' 
+                        ? '#ffebee' 
                         : defect.priority === 'high'
-                        ? 'warning.50'
+                        ? '#fff3e0'
                         : 'inherit'
                     }}
                   >
@@ -381,6 +388,6 @@ export const DefectDashboard: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </div>
   );
 };

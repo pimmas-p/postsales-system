@@ -53,7 +53,7 @@ export const HandoverDashboard: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <CircularProgress />
       </Box>
     );
@@ -69,37 +69,41 @@ export const HandoverDashboard: React.FC = () => {
   }
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
+    <div style={{ padding: '0 20px' }}>
+      <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
         Handover Readiness
       </Typography>
 
       {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Box display="flex" gap={2} flexWrap="wrap">
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={filters.status}
-              label="Status"
-              onChange={(e) => setStatusFilter(e.target.value as any)}
-            >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="pending">Pending</MenuItem>
-              <MenuItem value="ready">Ready</MenuItem>
-              <MenuItem value="completed">Completed</MenuItem>
-              <MenuItem value="blocked">Blocked</MenuItem>
-            </Select>
-          </FormControl>
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <div className="row g-3">
+          <div className="col-3">
+            <FormControl fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={filters.status}
+                label="Status"
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="pending">Pending</MenuItem>
+                <MenuItem value="ready">Ready</MenuItem>
+                <MenuItem value="completed">Completed</MenuItem>
+                <MenuItem value="blocked">Blocked</MenuItem>
+              </Select>
+            </FormControl>
+          </div>
 
-          <TextField
-            label="Search by Unit ID or Customer ID"
-            variant="outlined"
-            value={filters.searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            sx={{ flexGrow: 1, minWidth: 300 }}
-          />
-        </Box>
+          <div className="col-9">
+            <TextField
+              fullWidth
+              label="Search by Unit ID or Customer ID"
+              variant="outlined"
+              value={filters.searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
       </Paper>
 
       {/* Results Count */}
@@ -108,24 +112,24 @@ export const HandoverDashboard: React.FC = () => {
       </Typography>
 
       {/* Table */}
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} sx={{ '& .MuiTableRow-root:hover': { backgroundColor: '#f8f9fa' } }}>
         <Table>
-          <TableHead>
+          <TableHead sx={{ backgroundColor: '#f8f9fa' }}>
             <TableRow>
-              <TableCell>Unit ID</TableCell>
-              <TableCell>Customer ID</TableCell>
-              <TableCell align="center">KYC</TableCell>
-              <TableCell align="center">Contract</TableCell>
-              <TableCell align="center">Payment</TableCell>
-              <TableCell align="center">Overall Status</TableCell>
-              <TableCell align="center">Created</TableCell>
-              <TableCell align="center">Actions</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Unit ID</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Customer ID</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>KYC</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Contract</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Payment</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Overall Status</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Created</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredCases && filteredCases.length > 0 ? (
               filteredCases.map((handoverCase) => (
-                <TableRow key={handoverCase.id} hover>
+                <TableRow key={handoverCase.id}>
                   <TableCell sx={{ fontWeight: 600 }}>{handoverCase.unit_id}</TableCell>
                   <TableCell>{handoverCase.customer_id}</TableCell>
                   <TableCell align="center">
@@ -148,6 +152,11 @@ export const HandoverDashboard: React.FC = () => {
                       size="small"
                       onClick={() => navigate(`/handover/${handoverCase.id}`)}
                       title="View Details"
+                      sx={{ 
+                        '&:hover': { 
+                          backgroundColor: '#e9ecef' 
+                        } 
+                      }}
                     >
                       <ViewIcon />
                     </IconButton>
@@ -157,7 +166,7 @@ export const HandoverDashboard: React.FC = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={8} align="center">
-                  <Typography color="text.secondary" py={4}>
+                  <Typography color="text.secondary" sx={{ py: 4 }}>
                     No handover cases found
                   </Typography>
                 </TableCell>
@@ -166,6 +175,6 @@ export const HandoverDashboard: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
-    </Box>
+    </div>
   );
 };

@@ -53,7 +53,7 @@ export const OnboardingDashboard: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <CircularProgress />
       </Box>
     );
@@ -69,38 +69,42 @@ export const OnboardingDashboard: React.FC = () => {
   }
 
   return (
-    <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" sx={{ fontWeight: 700 }}>
+    <div style={{ padding: '0 20px' }}>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <Typography variant="h4" sx={{ fontWeight: 600 }}>
           Owner Onboarding
         </Typography>
-      </Box>
+      </div>
 
       {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Box display="flex" gap={2} flexWrap="wrap">
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={filters.status}
-              label="Status"
-              onChange={(e) => setStatusFilter(e.target.value as any)}
-            >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="pending">Pending</MenuItem>
-              <MenuItem value="in_progress">In Progress</MenuItem>
-              <MenuItem value="completed">Completed</MenuItem>
-            </Select>
-          </FormControl>
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <div className="row g-3">
+          <div className="col-3">
+            <FormControl fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={filters.status}
+                label="Status"
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="pending">Pending</MenuItem>
+                <MenuItem value="in_progress">In Progress</MenuItem>
+                <MenuItem value="completed">Completed</MenuItem>
+              </Select>
+            </FormControl>
+          </div>
 
-          <TextField
-            label="Search by Unit ID or Customer ID"
-            variant="outlined"
-            value={filters.searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            sx={{ flexGrow: 1, minWidth: 300 }}
-          />
-        </Box>
+          <div className="col-9">
+            <TextField
+              fullWidth
+              label="Search by Unit ID or Customer ID"
+              variant="outlined"
+              value={filters.searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
       </Paper>
 
       {/* Results Count */}
@@ -109,25 +113,25 @@ export const OnboardingDashboard: React.FC = () => {
       </Typography>
 
       {/* Table */}
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} sx={{ '& .MuiTableRow-root:hover': { backgroundColor: '#f8f9fa' } }}>
         <Table>
-          <TableHead>
+          <TableHead sx={{ backgroundColor: '#f8f9fa' }}>
             <TableRow>
-              <TableCell>Unit ID</TableCell>
-              <TableCell>Customer ID</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell align="center">Area (sqm)</TableCell>
-              <TableCell align="center">Registration</TableCell>
-              <TableCell align="center">Documents</TableCell>
-              <TableCell align="center">Overall Status</TableCell>
-              <TableCell align="center">Created</TableCell>
-              <TableCell align="center">Actions</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Unit ID</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Customer ID</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Area (sqm)</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Registration</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Documents</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Overall Status</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Created</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600 }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredCases && filteredCases.length > 0 ? (
               filteredCases.map((onboardingCase) => (
-                <TableRow key={onboardingCase.id} hover>
+                <TableRow key={onboardingCase.id}>
                   <TableCell sx={{ fontWeight: 600 }}>{onboardingCase.unit_id}</TableCell>
                   <TableCell>{onboardingCase.customer_id}</TableCell>
                   <TableCell>{onboardingCase.email || '-'}</TableCell>
@@ -155,6 +159,11 @@ export const OnboardingDashboard: React.FC = () => {
                       size="small"
                       onClick={() => navigate(`/onboarding/${onboardingCase.id}`)}
                       title="View Details"
+                      sx={{ 
+                        '&:hover': { 
+                          backgroundColor: '#e9ecef' 
+                        } 
+                      }}
                     >
                       <ViewIcon />
                     </IconButton>
@@ -164,7 +173,7 @@ export const OnboardingDashboard: React.FC = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={9} align="center">
-                  <Typography color="text.secondary" py={4}>
+                  <Typography color="text.secondary" sx={{ py: 4 }}>
                     No onboarding cases found
                   </Typography>
                 </TableCell>
@@ -175,6 +184,6 @@ export const OnboardingDashboard: React.FC = () => {
       </TableContainer>
 
       {/* Note: CreateOnboardingDialog component should be added here */}
-    </Box>
+    </div>
   );
 };

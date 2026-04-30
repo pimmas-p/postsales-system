@@ -3,35 +3,24 @@ import {
   Typography, 
   Card, 
   CardContent, 
-  Grid, 
   Alert,
   LinearProgress,
   Chip,
   Button,
   Paper,
-  Stack,
-  Avatar,
   Divider,
-  IconButton
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { handoverApi } from '../services/handoverApi';
 import { onboardingApi } from '../services/onboardingApi';
 import { defectApi } from '../services/defectApi';
 import { 
-  AssignmentTurnedIn, 
-  CheckCircle, 
-  HourglassEmpty, 
-  Block,
   PersonAdd,
   Build,
-  Warning,
-  TrendingUp,
   Add,
-  Notifications,
-  ArrowForward,
   Home,
-  Assignment
+  Assignment,
+  TrendingUp,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
@@ -63,55 +52,6 @@ export const HomePage: React.FC = () => {
     staleTime: 20000,
   });
 
-  const { data: handoverCases } = useQuery({
-    queryKey: ['handover', 'all'],
-    queryFn: () => handoverApi.getAllCases(),
-    refetchInterval: 60000,
-  });
-
-  const { data: defectCases } = useQuery({
-    queryKey: ['defects', 'all'],
-    queryFn: () => defectApi.getAllDefects(),
-    refetchInterval: 60000,
-  });
-
-  // Calculate urgent actions
-  const urgentActions = useMemo(() => {
-    const actions = [];
-    
-    if (handoverStats?.blocked && handoverStats.blocked > 0) {
-      actions.push({
-        type: 'blocked_handover',
-        count: handoverStats.blocked,
-        message: `${handoverStats.blocked} handover cases blocked`,
-        severity: 'error' as const,
-        action: () => navigate('/handover?filter=blocked')
-      });
-    }
-    
-    if (defectStats?.critical && defectStats.critical > 0) {
-      actions.push({
-        type: 'critical_defect',
-        count: defectStats.critical,
-        message: `${defectStats.critical} critical defects need attention`,
-        severity: 'error' as const,
-        action: () => navigate('/defects?priority=critical')
-      });
-    }
-    
-    if (handoverStats?.ready && handoverStats.ready > 0) {
-      actions.push({
-        type: 'ready_handover',
-        count: handoverStats.ready,
-        message: `${handoverStats.ready} units ready for handover`,
-        severity: 'success' as const,
-        action: () => navigate('/handover?filter=ready')
-      });
-    }
-    
-    return actions;
-  }, [handoverStats, defectStats, navigate]);
-
   // Calculate handover pipeline percentages
   const handoverPipeline = useMemo(() => {
     const total = handoverStats?.total || 0;
@@ -125,29 +65,26 @@ export const HomePage: React.FC = () => {
     };
   }, [handoverStats]);
 
-  const gradientCards = [
+  const statCards = [
     {
       title: 'Total Handovers',
       value: handoverStats?.total || 0,
-      subtitle: `${handoverStats?.ready || 0} ready to handover`,
-      icon: <Home sx={{ fontSize: 40 }} />,
-      gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      subtitle: `${handoverStats?.ready || 0} ready`,
+      icon: <Home sx={{ fontSize: 32, color: '#5b7c99' }} />,
       action: () => navigate('/handover')
     },
     {
       title: 'Active Defects',
-      value: (defectStats?.reported || 0) + (defectStats?.assigned || 0),
-      subtitle: `${defectStats?.critical || 0} critical priority`,
-      icon: <Build sx={{ fontSize: 40 }} />,
-      gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      value: (defectStats?.reported || 0) + (defectStats?.scheduled || 0),
+      subtitle: `${defectStats?.critical || 0} critical`,
+      icon: <Build sx={{ fontSize: 32, color: '#5b7c99' }} />,
       action: () => navigate('/defects')
     },
     {
       title: 'Owner Onboarding',
       value: onboardingStats?.in_progress || 0,
       subtitle: `${onboardingStats?.completed || 0} completed`,
-      icon: <PersonAdd sx={{ fontSize: 40 }} />,
-      gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      icon: <PersonAdd sx={{ fontSize: 32, color: '#5b7c99' }} />,
       action: () => navigate('/onboarding')
     },
     {
@@ -155,133 +92,77 @@ export const HomePage: React.FC = () => {
       value: handoverStats?.total 
         ? Math.round(((handoverStats?.completed || 0) / handoverStats.total) * 100) + '%'
         : '0%',
-      subtitle: `${handoverStats?.completed || 0} units delivered`,
-      icon: <TrendingUp sx={{ fontSize: 40 }} />,
-      gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+      subtitle: `${handoverStats?.completed || 0} delivered`,
+      icon: <TrendingUp sx={{ fontSize: 32, color: '#5b7c99' }} />,
       action: () => {}
     },
   ];
 
   return (
-    <Box>
+    <div style={{ padding: '0 20px' }}>
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, color: '#1a237e' }}>
+      <div className="mb-4">
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
           Post-Sales Dashboard
         </Typography>
         <Typography variant="body1" color="text.secondary">
           Welcome back! Here's what's happening with your properties today.
         </Typography>
-      </Box>
+      </div>
 
-      {/* Urgent Actions Alert */}
-      {urgentActions.length > 0 && (
-        <Paper 
-          elevation={0} 
-          sx={{ 
-            p: 3, 
-            mb: 3, 
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            borderRadius: 2
-          }}
-        >
-          <Stack sx={{ flexDirection: 'row' }} spacing={2} alignItems="center" sx={{ mb: 2 }}>
-            <Notifications sx={{ fontSize: 32 }} />
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Urgent Actions Required
-            </Typography>
-          </Stack>
-          <Grid container spacing={2}>
-            {urgentActions.map((action, index) => (
-              <Grid item xs={12} md={4} key={index}>
-                <Paper 
-                  sx={{ 
-                    p: 2, 
-                    bgcolor: 'rgba(255,255,255,0.95)',
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: 4
-                    }
-                  }}
-                  onClick={action.action}
-                >
-                  <Stack sx={{ flexDirection: 'row' }} spacing={1} alignItems="center">
-                    <Chip 
-                      label={action.count} 
-                      color={action.severity}
-                      size="small"
-                      sx={{ fontWeight: 700 }}
-                    />
-                    <Typography variant="body2" sx={{ flex: 1, color: 'text.primary' }}>
-                      {action.message}
-                    </Typography>
-                    <ArrowForward fontSize="small" color="action" />
-                  </Stack>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        </Paper>
-      )}
-
-      {/* Gradient Metric Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {gradientCards.map((card, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
+      {/* Stat Cards - Bootstrap Grid */}
+      <div className="row g-3 mb-4">
+        {statCards.map((card, index) => (
+          <div className="col-3" key={index}>
             <Card 
               sx={{ 
-                background: card.gradient,
-                color: 'white',
                 cursor: 'pointer',
-                transition: 'transform 0.2s, box-shadow 0.2s',
+                transition: 'box-shadow 0.2s',
                 '&:hover': {
-                  transform: 'translateY(-8px)',
-                  boxShadow: 8
-                }
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                },
+                height: '100%'
               }}
               onClick={card.action}
             >
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                  <Box>
-                    <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
-                      {card.value}
-                    </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
                       {card.title}
                     </Typography>
+                    <Typography variant="h3" sx={{ fontWeight: 600, mb: 0.5 }}>
+                      {card.value}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {card.subtitle}
+                    </Typography>
                   </Box>
-                  <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 56, height: 56 }}>
+                  <Box>
                     {card.icon}
-                  </Avatar>
+                  </Box>
                 </Box>
-                <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                  {card.subtitle}
-                </Typography>
               </CardContent>
             </Card>
-          </Grid>
+          </div>
         ))}
-      </Grid>
+      </div>
 
       {/* Handover Pipeline */}
       {handoverPipeline && (
-        <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid', borderColor: 'divider' }}>
+        <Paper sx={{ p: 3, mb: 4 }}>
           <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
             Handover Pipeline
           </Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+          <div className="row">
+            <div className="col-6">
               <Box sx={{ mb: 3 }}>
-                <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', mb: 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="body2" color="text.secondary">Pending</Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
                     {handoverStats?.pending || 0} ({handoverPipeline.pending.toFixed(0)}%)
                   </Typography>
-                </Stack>
+                </Box>
                 <LinearProgress 
                   variant="determinate" 
                   value={handoverPipeline.pending} 
@@ -291,12 +172,12 @@ export const HomePage: React.FC = () => {
               </Box>
               
               <Box sx={{ mb: 3 }}>
-                <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', mb: 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="body2" color="text.secondary">Ready</Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
                     {handoverStats?.ready || 0} ({handoverPipeline.ready.toFixed(0)}%)
                   </Typography>
-                </Stack>
+                </Box>
                 <LinearProgress 
                   variant="determinate" 
                   value={handoverPipeline.ready} 
@@ -304,16 +185,16 @@ export const HomePage: React.FC = () => {
                   color="success"
                 />
               </Box>
-            </Grid>
+            </div>
 
-            <Grid item xs={12} md={6}>
+            <div className="col-6">
               <Box sx={{ mb: 3 }}>
-                <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', mb: 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="body2" color="text.secondary">Completed</Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
                     {handoverStats?.completed || 0} ({handoverPipeline.completed.toFixed(0)}%)
                   </Typography>
-                </Stack>
+                </Box>
                 <LinearProgress 
                   variant="determinate" 
                   value={handoverPipeline.completed} 
@@ -323,12 +204,12 @@ export const HomePage: React.FC = () => {
               </Box>
               
               <Box sx={{ mb: 3 }}>
-                <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', mb: 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="body2" color="text.secondary">Blocked</Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
                     {handoverStats?.blocked || 0} ({handoverPipeline.blocked.toFixed(0)}%)
                   </Typography>
-                </Stack>
+                </Box>
                 <LinearProgress 
                   variant="determinate" 
                   value={handoverPipeline.blocked} 
@@ -336,42 +217,42 @@ export const HomePage: React.FC = () => {
                   color="error"
                 />
               </Box>
-            </Grid>
-          </Grid>
+            </div>
+          </div>
         </Paper>
       )}
 
       {/* Performance Metrics & Quick Actions */}
-      <Grid container spacing={3}>
+      <div className="row g-3">
         {/* Performance Metrics */}
-        <Grid item xs={12} md={6}>
-          <Paper elevation={0} sx={{ p: 3, height: '100%', border: '1px solid', borderColor: 'divider' }}>
+        <div className="col-6">
+          <Paper sx={{ p: 3, height: '100%' }}>
             <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
               Performance Metrics
             </Typography>
             
             <Box sx={{ mb: 3 }}>
-              <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                 <Typography variant="body2" color="text.secondary">Defect Resolution Rate</Typography>
                 <Chip 
                   label={defectStats?.total 
-                    ? `${Math.round(((defectStats?.resolved || 0) / defectStats.total) * 100)}%`
+                    ? `${Math.round(((defectStats?.closed || 0) / defectStats.total) * 100)}%`
                     : '0%'
                   }
                   size="small" 
                   color="success"
                   sx={{ fontWeight: 600 }}
                 />
-              </Stack>
+              </Box>
               <Typography variant="body2">
-                {defectStats?.resolved || 0} of {defectStats?.total || 0} defects resolved
+                {defectStats?.closed || 0} of {defectStats?.total || 0} defects resolved
               </Typography>
             </Box>
 
             <Divider sx={{ my: 2 }} />
 
             <Box sx={{ mb: 3 }}>
-              <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                 <Typography variant="body2" color="text.secondary">Onboarding Completion</Typography>
                 <Chip 
                   label={onboardingStats?.total 
@@ -382,7 +263,7 @@ export const HomePage: React.FC = () => {
                   color="primary"
                   sx={{ fontWeight: 600 }}
                 />
-              </Stack>
+              </Box>
               <Typography variant="body2">
                 {onboardingStats?.completed || 0} of {onboardingStats?.total || 0} owners onboarded
               </Typography>
@@ -391,7 +272,7 @@ export const HomePage: React.FC = () => {
             <Divider sx={{ my: 2 }} />
 
             <Box>
-              <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                 <Typography variant="body2" color="text.secondary">Critical Issues</Typography>
                 <Chip 
                   label={defectStats?.critical || 0}
@@ -399,22 +280,22 @@ export const HomePage: React.FC = () => {
                   color={defectStats?.critical ? "error" : "default"}
                   sx={{ fontWeight: 600 }}
                 />
-              </Stack>
+              </Box>
               <Typography variant="body2">
                 Requires immediate attention
               </Typography>
             </Box>
           </Paper>
-        </Grid>
+        </div>
 
         {/* Quick Actions */}
-        <Grid item xs={12} md={6}>
-          <Paper elevation={0} sx={{ p: 3, height: '100%', border: '1px solid', borderColor: 'divider' }}>
+        <div className="col-6">
+          <Paper sx={{ p: 3, height: '100%' }}>
             <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
               Quick Actions
             </Typography>
             
-            <Stack spacing={2}>
+            <div className="d-flex flex-column gap-2">
               <Button
                 fullWidth
                 variant="outlined"
@@ -425,7 +306,7 @@ export const HomePage: React.FC = () => {
                   textTransform: 'none',
                   fontWeight: 600
                 }}
-                onClick={() => navigate('/defects/new')}
+                onClick={() => navigate('/defects')}
               >
                 Report New Defect
               </Button>
@@ -474,15 +355,15 @@ export const HomePage: React.FC = () => {
               >
                 Track Active Repairs
               </Button>
-            </Stack>
+            </div>
           </Paper>
-        </Grid>
-      </Grid>
+        </div>
+      </div>
 
       {/* System Status Info */}
-      <Alert severity="success" sx={{ mt: 4 }}>
+      <Alert severity="info" sx={{ mt: 4 }}>
         <strong>System Status:</strong> All services operational • Last updated: {new Date().toLocaleTimeString()}
       </Alert>
-    </Box>
+    </div>
   );
 };

@@ -27,6 +27,30 @@ This folder contains database migration scripts for Post-Sales Backend Bridge se
    - Purpose: Store warranty verification results from Legal team
    - Used by: Defect warranty verification flow
 
+### 002_add_defect_scheduling_columns.sql
+**Date:** May 1, 2026  
+**Status:** ✅ Ready to execute  
+**Description:** Adds defect scheduling and closure workflow columns
+
+**Changes:**
+1. **defect_cases** → Add scheduling columns:
+   - `assigned_to` VARCHAR(100) - Contractor name
+   - `repair_scheduled_date` TIMESTAMP - When repair is scheduled
+   - `repair_notes` TEXT - Notes about repair scheduling
+   - Purpose: Enable "Schedule Repair" workflow (reported → scheduled)
+   - Used by: PUT `/api/defects/cases/:id/schedule` endpoint
+   
+2. **defect_cases** → Add closure columns:
+   - `closed_at` TIMESTAMP - When case was closed
+   - `closed_by` VARCHAR(100) - Who closed the case
+   - `closing_notes` TEXT - Notes about case closure
+   - `photo_after_url` TEXT - After-repair photo
+   - Purpose: Enable "Close Case" workflow (scheduled → closed)
+   - Used by: PUT `/api/defects/cases/:id/close` endpoint
+
+**⚠️ IMPORTANT:** Run this migration if you get error:  
+`"Could not find the 'repair_notes' column of 'defect_cases' in the schema cache"`
+
 ---
 
 ## 🚀 How to Execute Migration
@@ -68,8 +92,9 @@ psql "postgresql://postgres:[YOUR-PASSWORD]@[YOUR-HOST]:5432/postgres" \
 
 ## ✅ Verification
 
-After running the migration, verify with these queries:
+After running the migrations, verify with these queries:
 
+### Migration 001 Verification
 ```sql
 -- Check handover_cases
 SELECT column_name, data_type 
@@ -85,7 +110,7 @@ WHERE table_name = 'onboarding_cases'
 AND column_name = 'area_size';
 -- Expected: 1 row
 
--- Check defect_cases
+-- Check defect_cases warranty columns
 SELECT column_name, data_type 
 FROM information_schema.columns 
 WHERE table_name = 'defect_cases' 
@@ -96,6 +121,25 @@ AND column_name IN ('warranty_id', 'warranty_coverage_status', 'warranty_coverag
 SELECT indexname FROM pg_indexes 
 WHERE indexname IN ('idx_handover_contract_id', 'idx_defect_warranty_id');
 -- Expected: 2 rows
+```
+
+### Migration 002 Verification
+```sql
+-- Check defect_cases scheduling columns
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns 
+WHERE table_name = 'defect_cases' 
+AND column_name IN (
+    'assigned_to', 
+    'repair_scheduled_date', 
+    'repair_notes',
+    'closed_at',
+    'closed_by',
+    'closing_notes',
+    'photo_after_url'
+)
+ORDER BY column_name;
+-- Expected: 7 rows
 ```
 
 ---

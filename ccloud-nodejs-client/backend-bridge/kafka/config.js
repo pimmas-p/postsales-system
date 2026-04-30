@@ -11,25 +11,33 @@ function readKafkaConfig() {
     return null;
   }
 
-  // Validate required environment variables
-  const requiredVars = [
-    'KAFKA_BOOTSTRAP_SERVERS',
-    'KAFKA_SASL_USERNAME',
-    'KAFKA_SASL_PASSWORD'
-  ];
+  // Get credentials
+  const apiKey = process.env.KAFKA_API_KEY;
+  const apiSecret = process.env.KAFKA_API_SECRET;
+  const bootstrapServers = process.env.KAFKA_BOOTSTRAP_SERVERS;
 
-  const missing = requiredVars.filter(varName => !process.env[varName]);
-  if (missing.length > 0) {
-    console.error(`❌ Missing required Kafka environment variables: ${missing.join(', ')}`);
+  // Validate required environment variables
+  if (!bootstrapServers) {
+    console.error('❌ Missing required Kafka environment variable: KAFKA_BOOTSTRAP_SERVERS');
+    process.exit(1);
+  }
+
+  if (!apiKey) {
+    console.error('❌ Missing required Kafka environment variable: KAFKA_API_KEY');
+    process.exit(1);
+  }
+
+  if (!apiSecret) {
+    console.error('❌ Missing required Kafka environment variable: KAFKA_API_SECRET');
     process.exit(1);
   }
 
   const config = {
-    'bootstrap.servers': process.env.KAFKA_BOOTSTRAP_SERVERS,
+    'bootstrap.servers': bootstrapServers,
     'security.protocol': 'SASL_SSL',
     'sasl.mechanisms': 'PLAIN',
-    'sasl.username': process.env.KAFKA_SASL_USERNAME,
-    'sasl.password': process.env.KAFKA_SASL_PASSWORD,
+    'sasl.username': apiKey,
+    'sasl.password': apiSecret,
   };
   
   // SSL certificate verification - can be disabled for development

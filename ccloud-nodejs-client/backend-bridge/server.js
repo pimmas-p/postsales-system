@@ -13,15 +13,27 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? [process.env.FRONTEND_URL].filter(Boolean)
-  : [
-      'http://localhost:5173',
-      process.env.FRONTEND_URL
-    ].filter(Boolean);
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://postsales-system.vercel.app',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+console.log('🔐 CORS allowed origins:', allowedOrigins);
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman, curl)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || !process.env.NODE_ENV === 'production') {
+      callback(null, true);
+    } else {
+      console.warn('⚠️  CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
@@ -76,6 +88,33 @@ app.use((err, req, res, next) => {
 async function startServer() {
   try {
     console.log('\n🚀 Starting Post-Sales Backend Bridge...\n');
+
+    // Check required environment variables
+    console.log('🔍 Environment Variables Check:');
+    const requiredEnvVars = [
+      'SUPABASE_URL',
+      'SUPABASE_SECRET_KEY',
+      'PORT'
+    ];
+    
+    const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+    
+    requiredEnvVars.forEach(varName => {
+      const isSet = process.env[varName] ? '✅' : '❌';
+      const value = varName.includes('KEY') || varName.includes('PASSWORD') 
+        ? '(hidden)' 
+        : process.env[varName] || 'NOT SET';
+      console.log(`   ${isSet} ${varName}: ${isSet === '✅' ? value : 'MISSING'}`);
+    });
+    
+    if (missingVars.length > 0) {
+      console.error('\n❌ ERROR: Missing required environment variables:');
+      missingVars.forEach(varName => console.error(`   - ${varName}`));
+      console.error('\n   Please set these in Render Dashboard > Environment\n');
+      process.exit(1);
+    }
+    
+    console.log('');
 
     // Skip Kafka initialization for development (uncomment when Kafka is available)
     console.log('⏭️  Skipping Kafka initialization (REST API only mode)\n');

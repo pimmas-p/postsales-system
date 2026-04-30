@@ -1,5 +1,5 @@
 import { Alert, AlertTitle, Box, Typography } from '@mui/material';
-import { ErrorOutline as ErrorIcon } from '@mui/icons-material';
+import { ErrorOutlined as ErrorIcon } from '@mui/icons-material';
 
 interface ErrorAlertProps {
   error: unknown;
@@ -26,9 +26,9 @@ export const ErrorAlert: React.FC<ErrorAlertProps> = ({
     return 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
   };
 
-  // Get error code for debugging (only in development)
+  // Get error code for debugging
   const getErrorCode = (err: unknown): string | null => {
-    if (process.env.NODE_ENV === 'development' && err && typeof err === 'object') {
+    if (err && typeof err === 'object') {
       if ('response' in err && err.response && typeof err.response === 'object') {
         if ('data' in err.response && err.response.data && typeof err.response.data === 'object') {
           if ('error' in err.response.data && err.response.data.error && typeof err.response.data.error === 'object') {

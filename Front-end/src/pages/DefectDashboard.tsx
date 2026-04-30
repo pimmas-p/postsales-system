@@ -69,7 +69,7 @@ export const DefectDashboard: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <CircularProgress />
       </Box>
     );
@@ -86,7 +86,7 @@ export const DefectDashboard: React.FC = () => {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
           Snagging & Defects
         </Typography>
@@ -258,7 +258,7 @@ export const DefectDashboard: React.FC = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={9} align="center">
-                  <Typography color="text.secondary" py={4}>
+                  <Typography color="text.secondary" sx={{ py: 4 }}>
                     No defects found
                   </Typography>
                 </TableCell>

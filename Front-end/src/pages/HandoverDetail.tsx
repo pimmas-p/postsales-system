@@ -87,7 +87,7 @@ export const HandoverDetail: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <CircularProgress />
       </Box>
     );
@@ -129,7 +129,7 @@ export const HandoverDetail: React.FC = () => {
   return (
     <Box>
       {/* Header */}
-      <Box display="flex" alignItems="center" gap={2} mb={3}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
         <IconButton onClick={() => navigate('/handover')}>
           <ArrowBack />
         </IconButton>
@@ -199,9 +199,9 @@ export const HandoverDetail: React.FC = () => {
           {unitData && (
             <Card sx={{ mt: 2 }}>
               <CardContent>
-                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                <Stack sx={{ flexDirection: 'row', alignItems: 'center' }} spacing={1}>
                   <Home color="primary" />
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
                     Unit Information
                   </Typography>
                 </Stack>
@@ -224,28 +224,28 @@ export const HandoverDetail: React.FC = () => {
                 <Stack spacing={1.5}>
                   <Box>
                     <Typography variant="caption" color="text.secondary">Unit Type</Typography>
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {unitData.unit_type || 'N/A'}
                     </Typography>
                   </Box>
 
                   <Box>
                     <Typography variant="caption" color="text.secondary">Size</Typography>
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {unitData.size ? `${unitData.size} sq.m` : 'N/A'}
                     </Typography>
                   </Box>
 
                   <Box>
                     <Typography variant="caption" color="text.secondary">Floor</Typography>
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {unitData.floor || 'N/A'}
                     </Typography>
                   </Box>
 
                   <Box>
                     <Typography variant="caption" color="text.secondary">Direction</Typography>
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {unitData.direction || 'N/A'}
                     </Typography>
                   </Box>
@@ -258,9 +258,9 @@ export const HandoverDetail: React.FC = () => {
           {contractData && (
             <Card sx={{ mt: 2 }}>
               <CardContent>
-                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                <Stack sx={{ flexDirection: 'row', alignItems: 'center' }} spacing={1}>
                   <Description color="primary" />
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
                     Contract Details
                   </Typography>
                 </Stack>
@@ -268,7 +268,7 @@ export const HandoverDetail: React.FC = () => {
                 <Stack spacing={1.5}>
                   <Box>
                     <Typography variant="caption" color="text.secondary">Contract ID</Typography>
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {contractData.contract_id || contractData.id}
                     </Typography>
                   </Box>
@@ -285,7 +285,7 @@ export const HandoverDetail: React.FC = () => {
                   {contractData.signed_date && (
                     <Box>
                       <Typography variant="caption" color="text.secondary">Signed Date</Typography>
-                      <Typography variant="body2" fontWeight={600}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         {format(new Date(contractData.signed_date), 'dd/MM/yyyy')}
                       </Typography>
                     </Box>
@@ -294,7 +294,7 @@ export const HandoverDetail: React.FC = () => {
                   {contractData.contract_amount && (
                     <Box>
                       <Typography variant="caption" color="text.secondary">Contract Amount</Typography>
-                      <Typography variant="body2" fontWeight={600}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         ฿{contractData.contract_amount.toLocaleString()}
                       </Typography>
                     </Box>
@@ -321,9 +321,9 @@ export const HandoverDetail: React.FC = () => {
           {paymentData && (
             <Card sx={{ mt: 2 }}>
               <CardContent>
-                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                <Stack sx={{ flexDirection: 'row', alignItems: 'center' }} spacing={1}>
                   <AccountBalance color="primary" />
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
                     Payment Details
                   </Typography>
                 </Stack>
@@ -341,7 +341,7 @@ export const HandoverDetail: React.FC = () => {
                   {paymentData.total_amount && (
                     <Box>
                       <Typography variant="caption" color="text.secondary">Total Amount</Typography>
-                      <Typography variant="body2" fontWeight={600}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         ฿{paymentData.total_amount.toLocaleString()}
                       </Typography>
                     </Box>
@@ -350,7 +350,7 @@ export const HandoverDetail: React.FC = () => {
                   {paymentData.paid_amount && (
                     <Box>
                       <Typography variant="caption" color="text.secondary">Paid Amount</Typography>
-                      <Typography variant="body2" fontWeight={600} color="success.main">
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.main' }}>
                         ฿{paymentData.paid_amount.toLocaleString()}
                       </Typography>
                     </Box>
@@ -359,7 +359,7 @@ export const HandoverDetail: React.FC = () => {
                   {paymentData.outstanding_amount && paymentData.outstanding_amount > 0 && (
                     <Box>
                       <Typography variant="caption" color="text.secondary">Outstanding</Typography>
-                      <Typography variant="body2" fontWeight={600} color="error.main">
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: 'error.main' }}>
                         ฿{paymentData.outstanding_amount.toLocaleString()}
                       </Typography>
                     </Box>
@@ -368,7 +368,7 @@ export const HandoverDetail: React.FC = () => {
                   {paymentData.last_payment_date && (
                     <Box>
                       <Typography variant="caption" color="text.secondary">Last Payment</Typography>
-                      <Typography variant="body2" fontWeight={600}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         {format(new Date(paymentData.last_payment_date), 'dd/MM/yyyy')}
                       </Typography>
                     </Box>

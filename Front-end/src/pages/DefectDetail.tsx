@@ -125,12 +125,12 @@ export const DefectDetail: React.FC = () => {
           Back to Defects
         </Button>
         
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
               {defect.title}
             </Typography>
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack sx={{ flexDirection: 'row', alignItems: 'center' }} spacing={2}>
               <Chip label={`#${defect.defect_number}`} variant="outlined" size="small" />
               <StatusChip status={defect.status} />
               <Chip 
@@ -147,7 +147,7 @@ export const DefectDetail: React.FC = () => {
             </Stack>
           </Box>
           
-          <Stack direction="row" spacing={2}>
+          <Stack sx={{ flexDirection: 'row' }} spacing={2}>
             <Button variant="outlined" startIcon={<Assignment />}>
               Assign
             </Button>
@@ -169,21 +169,21 @@ export const DefectDetail: React.FC = () => {
             
             <Grid container spacing={2} sx={{ mb: 3 }}>
               <Grid item xs={6}>
-                <Stack direction="row" spacing={1} alignItems="center">
+                <Stack sx={{ flexDirection: 'row' }} spacing={1} alignItems="center">
                   <Person color="action" />
                   <Box>
                     <Typography variant="caption" color="text.secondary">Reported By</Typography>
-                    <Typography variant="body2" fontWeight={600}>{defect.reported_by}</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{defect.reported_by}</Typography>
                   </Box>
                 </Stack>
               </Grid>
               
               <Grid item xs={6}>
-                <Stack direction="row" spacing={1} alignItems="center">
+                <Stack sx={{ flexDirection: 'row' }} spacing={1} alignItems="center">
                   <CalendarToday color="action" />
                   <Box>
                     <Typography variant="caption" color="text.secondary">Reported Date</Typography>
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {format(new Date(defect.reported_at), 'MMM dd, yyyy')}
                     </Typography>
                   </Box>
@@ -191,22 +191,22 @@ export const DefectDetail: React.FC = () => {
               </Grid>
               
               <Grid item xs={6}>
-                <Stack direction="row" spacing={1} alignItems="center">
+                <Stack sx={{ flexDirection: 'row' }} spacing={1} alignItems="center">
                   <Home color="action" />
                   <Box>
                     <Typography variant="caption" color="text.secondary">Unit ID</Typography>
-                    <Typography variant="body2" fontWeight={600}>{defect.unit_id}</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{defect.unit_id}</Typography>
                   </Box>
                 </Stack>
               </Grid>
 
               {defect.assigned_to && (
                 <Grid item xs={6}>
-                  <Stack direction="row" spacing={1} alignItems="center">
+                  <Stack sx={{ flexDirection: 'row' }} spacing={1} alignItems="center">
                     <Build color="action" />
                     <Box>
                       <Typography variant="caption" color="text.secondary">Assigned To</Typography>
-                      <Typography variant="body2" fontWeight={600}>{defect.assigned_to}</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{defect.assigned_to}</Typography>
                     </Box>
                   </Stack>
                 </Grid>
@@ -238,7 +238,7 @@ export const DefectDetail: React.FC = () => {
           {/* Photo Gallery */}
           {(defect.photo_before_url || defect.photo_after_url) && (
             <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'divider' }}>
-              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+              <Stack sx={{ flexDirection: 'row', alignItems: 'center', mb: 2 }} spacing={1}>
                 <PhotoCamera color="action" />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                   Photos
@@ -300,7 +300,7 @@ export const DefectDetail: React.FC = () => {
           {/* Unit History Timeline */}
           {unitHistory && (
             <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider' }}>
-              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+              <Stack sx={{ flexDirection: 'row', alignItems: 'center', mb: 2 }} spacing={1}>
                 <History color="action" />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                   Unit History
@@ -362,7 +362,7 @@ export const DefectDetail: React.FC = () => {
               bgcolor: warranty?.is_covered ? 'success.50' : 'background.paper'
             }}
           >
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+            <Stack sx={{ flexDirection: 'row', alignItems: 'center', mb: 2 }} spacing={1}>
               <ShieldOutlined color={warranty?.is_covered ? 'success' : 'action'} />
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Warranty Coverage

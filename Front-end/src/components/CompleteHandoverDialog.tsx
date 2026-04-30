@@ -82,7 +82,7 @@ export const CompleteHandoverDialog: React.FC<CompleteHandoverDialogProps> = ({
             type="date"
             value={formData.handoverDate}
             onChange={(e) => setFormData({ ...formData, handoverDate: e.target.value })}
-            InputLabelProps={{ shrink: true }}
+            slotProps={{ inputLabel: { shrink: true } }}
             sx={{ mb: 2 }}
             required
           />

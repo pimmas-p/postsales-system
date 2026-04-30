@@ -186,7 +186,7 @@ export const HomePage: React.FC = () => {
             borderRadius: 2
           }}
         >
-          <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+          <Stack sx={{ flexDirection: 'row' }} spacing={2} alignItems="center" sx={{ mb: 2 }}>
             <Notifications sx={{ fontSize: 32 }} />
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
               Urgent Actions Required
@@ -208,7 +208,7 @@ export const HomePage: React.FC = () => {
                   }}
                   onClick={action.action}
                 >
-                  <Stack direction="row" spacing={1} alignItems="center">
+                  <Stack sx={{ flexDirection: 'row' }} spacing={1} alignItems="center">
                     <Chip 
                       label={action.count} 
                       color={action.severity}
@@ -276,9 +276,9 @@ export const HomePage: React.FC = () => {
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
               <Box sx={{ mb: 3 }}>
-                <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
+                <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="body2" color="text.secondary">Pending</Typography>
-                  <Typography variant="body2" fontWeight={600}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
                     {handoverStats?.pending || 0} ({handoverPipeline.pending.toFixed(0)}%)
                   </Typography>
                 </Stack>
@@ -291,9 +291,9 @@ export const HomePage: React.FC = () => {
               </Box>
               
               <Box sx={{ mb: 3 }}>
-                <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
+                <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="body2" color="text.secondary">Ready</Typography>
-                  <Typography variant="body2" fontWeight={600}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
                     {handoverStats?.ready || 0} ({handoverPipeline.ready.toFixed(0)}%)
                   </Typography>
                 </Stack>
@@ -308,9 +308,9 @@ export const HomePage: React.FC = () => {
 
             <Grid item xs={12} md={6}>
               <Box sx={{ mb: 3 }}>
-                <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
+                <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="body2" color="text.secondary">Completed</Typography>
-                  <Typography variant="body2" fontWeight={600}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
                     {handoverStats?.completed || 0} ({handoverPipeline.completed.toFixed(0)}%)
                   </Typography>
                 </Stack>
@@ -323,9 +323,9 @@ export const HomePage: React.FC = () => {
               </Box>
               
               <Box sx={{ mb: 3 }}>
-                <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
+                <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="body2" color="text.secondary">Blocked</Typography>
-                  <Typography variant="body2" fontWeight={600}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
                     {handoverStats?.blocked || 0} ({handoverPipeline.blocked.toFixed(0)}%)
                   </Typography>
                 </Stack>
@@ -351,7 +351,7 @@ export const HomePage: React.FC = () => {
             </Typography>
             
             <Box sx={{ mb: 3 }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+              <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                 <Typography variant="body2" color="text.secondary">Defect Resolution Rate</Typography>
                 <Chip 
                   label={defectStats?.total 
@@ -371,7 +371,7 @@ export const HomePage: React.FC = () => {
             <Divider sx={{ my: 2 }} />
 
             <Box sx={{ mb: 3 }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+              <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                 <Typography variant="body2" color="text.secondary">Onboarding Completion</Typography>
                 <Chip 
                   label={onboardingStats?.total 
@@ -391,7 +391,7 @@ export const HomePage: React.FC = () => {
             <Divider sx={{ my: 2 }} />
 
             <Box>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+              <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                 <Typography variant="body2" color="text.secondary">Critical Issues</Typography>
                 <Chip 
                   label={defectStats?.critical || 0}

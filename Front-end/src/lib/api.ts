@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+// Default to production URL, can be overridden with .env.local for local development
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://postsales-system.onrender.com';
+
+export { API_BASE_URL };
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,

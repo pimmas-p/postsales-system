@@ -37,6 +37,7 @@ import { handoverApi } from '../services/handoverApi';
 import { StatusChip } from '../components/StatusChip';
 import { CompleteHandoverDialog } from '../components/CompleteHandoverDialog';
 import { format } from 'date-fns';
+import { API_BASE_URL } from '../lib/api';
 
 export const HandoverDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -53,7 +54,7 @@ export const HandoverDetail: React.FC = () => {
   const { data: contractData } = useQuery({
     queryKey: ['handover', id, 'contract'],
     queryFn: async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/handover/${id}/contract`);
+      const response = await fetch(`${API_BASE_URL}/api/handover/${id}/contract`);
       if (!response.ok) return null;
       const data = await response.json();
       return data.data;
@@ -65,7 +66,7 @@ export const HandoverDetail: React.FC = () => {
   const { data: paymentData } = useQuery({
     queryKey: ['handover', id, 'payment'],
     queryFn: async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/handover/${id}/payment`);
+      const response = await fetch(`${API_BASE_URL}/api/handover/${id}/payment`);
       if (!response.ok) return null;
       const data = await response.json();
       return data.data;
@@ -77,7 +78,7 @@ export const HandoverDetail: React.FC = () => {
   const { data: unitData } = useQuery({
     queryKey: ['handover', id, 'unit'],
     queryFn: async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/handover/${id}/unit`);
+      const response = await fetch(`${API_BASE_URL}/api/handover/${id}/unit`);
       if (!response.ok) return null;
       const data = await response.json();
       return data.data;

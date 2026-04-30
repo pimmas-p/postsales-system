@@ -36,6 +36,7 @@ import {
 } from '@mui/icons-material';
 import { StatusChip } from '../components/StatusChip';
 import { format } from 'date-fns';
+import { API_BASE_URL } from '../lib/api';
 
 export const DefectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -52,7 +53,7 @@ export const DefectDetail: React.FC = () => {
   const { data: warranty } = useQuery({
     queryKey: ['defects', id, 'warranty'],
     queryFn: async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/defects/${id}/warranty`);
+      const response = await fetch(`${API_BASE_URL}/api/defects/${id}/warranty`);
       if (!response.ok) return null;
       const data = await response.json();
       return data.data;
@@ -64,7 +65,7 @@ export const DefectDetail: React.FC = () => {
   const { data: unitHistory } = useQuery({
     queryKey: ['defects', id, 'unit-history'],
     queryFn: async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/defects/${id}/unit-history`);
+      const response = await fetch(`${API_BASE_URL}/api/defects/${id}/unit-history`);
       if (!response.ok) return null;
       const data = await response.json();
       return data.data;

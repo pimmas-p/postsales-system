@@ -16,7 +16,6 @@ const PORT = process.env.PORT || 3001;
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
-  'https://postsales-system.vercel.app',
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
@@ -27,7 +26,16 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps, Postman, curl)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1 || !process.env.NODE_ENV === 'production') {
+    // Check if origin matches allowed origins
+    const isAllowed = allowedOrigins.some(allowed => origin === allowed);
+    
+    // Also allow all Vercel preview URLs (*.vercel.app)
+    const isVercelDomain = origin.endsWith('.vercel.app');
+    
+    // In development, allow all origins
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    
+    if (isAllowed || isVercelDomain || isDevelopment) {
       callback(null, true);
     } else {
       console.warn('⚠️  CORS blocked origin:', origin);

@@ -26,10 +26,13 @@ NODE_ENV=production
 PORT=3001
 SUPABASE_URL=https://itksoxfmkppjsqtvlfjc.supabase.co
 SUPABASE_SECRET_KEY=<copy from your .env file>
-FRONTEND_URL=https://postsales-system.vercel.app
+FRONTEND_URL=https://postsales-system-d4g7.vercel.app
 ```
 
-**💡 TIP**: Copy actual values from your local `.env` file in `backend-bridge/` folder
+**💡 TIP**: 
+- Copy actual values from your local `.env` file in `backend-bridge/` folder
+- For `FRONTEND_URL`, use your actual Vercel deployment URL (check Vercel dashboard)
+- CORS is configured to allow all `*.vercel.app` domains automatically
 
 ### Optional Variables (ถ้าต้องการใช้ Kafka)
 ```bash
@@ -78,7 +81,51 @@ KAFKA_DISABLE_SSL_VERIFICATION=false
 
 ## Troubleshooting
 
-### 500 Internal Server Error
+### 🔴 500 Internal Server Error (ทุก endpoint)
+
+**สาเหตุ:** Environment variables บน Render ยังไม่ได้ตั้งค่าหรือตั้งผิด
+
+**วิธีแก้:**
+
+1. **ไปที่ Render Dashboard**
+   - URL: https://dashboard.render.com
+   - เลือก service: **postsales-system**
+
+2. **เช็ค Logs แรก** (จะบอกว่าขาดอะไร)
+   - คลิกแท็บ **"Logs"** ทางซ้าย
+   - ดูว่ามี error message อะไร เช่น:
+     ```
+     ❌ SUPABASE_URL is not set!
+     ❌ SUPABASE_SECRET_KEY is not set!
+     ```
+
+3. **ตั้งค่า Environment Variables**
+   - คลิกแท็บ **"Environment"** ทางซ้าย
+   - กด **"Add Environment Variable"**
+   - เพิ่มตัวแปรตามในส่วน "Required Variables" ด้านบน
+   - ⚠️ **สำคัญ:** ต้องใส่ทุกตัวที่มี "Required"
+
+4. **กด Save Changes**
+   - Render จะ redeploy อัตโนมัติ (ใช้เวลา 2-3 นาที)
+   - เช็ค Logs อีกครั้งว่าเห็น:
+     ```
+     🔍 Environment Variables Check:
+       ✅ SUPABASE_URL: https://...
+       ✅ SUPABASE_SECRET_KEY: (hidden)
+       ✅ PORT: 3001
+       ✅ NODE_ENV: production
+       ✅ FRONTEND_URL: https://...
+     
+     🚀 Server running on port 3001
+     ```
+
+5. **ทดสอบ API**
+   - Health: https://postsales-system.onrender.com/health
+   - Stats: https://postsales-system.onrender.com/api/handover/stats
+
+---
+
+### 🔴 CORS Errors
 - ✅ Check environment variables are set correctly
 - ✅ Check Render logs for error messages
 - ✅ Verify Supabase credentials are correct

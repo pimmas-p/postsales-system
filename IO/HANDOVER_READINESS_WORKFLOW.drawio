@@ -1,0 +1,174 @@
+<mxfile host="65bd71144e">
+    <diagram name="Handover Readiness Workflow" id="handover-workflow">
+        <mxGraphModel dx="567" dy="319" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="Handover Readiness - Event-Driven Workflow" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="320" y="20" width="530" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="sources-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1F5FE;strokeColor=#01579B;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="80" width="280" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="sources-label" value="Data Sources (External Teams)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="40" y="85" width="280" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="team4" value="Managing Team (Team 4)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;fontSize=12;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="60" y="130" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="team4-topic" value="Topic: managing.kyc.completed&lt;br&gt;Data: unitId, customerId, kycStatus" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="145" width="220" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="team5" value="Legal Team (Team 5)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#4A148C;fontSize=12;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="60" y="210" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="team5-topic" value="Topic: purchase.contract.drafted&lt;br&gt;Data: contractId, unitId, status, fileUrl" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="225" width="220" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="team6" value="Payment Team (Team 6)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#1B5E20;fontSize=12;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="60" y="290" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="team6-topic" value="Topic: payment.secondpayment.completed&lt;br&gt;Data: propertyId, customerId, amount, status" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="305" width="220" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="kafka" value="Kafka Broker" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFCCBC;strokeColor=#BF360C;fontSize=14;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="400" y="160" width="120" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#F57F17;" parent="1" source="team4" target="kafka" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#4A148C;" parent="1" source="team5" target="kafka" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#1B5E20;" parent="1" source="team6" target="kafka" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="consumer" value="Kafka Consumer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00695C;fontSize=13;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="580" y="200" width="140" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow4" value="Subscribe" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#00695C;" parent="1" source="kafka" target="consumer" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="handlers-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="770" y="80" width="360" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="handlers-label" value="Event Handlers &amp; Processing" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="770" y="85" width="360" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow5" value="Route Events" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#E65100;" parent="1" source="consumer" target="handlers-bg" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="850" y="240" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="handler1" value="handleKycEvent()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="790" y="130" width="150" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="handler2" value="handleContractEvent()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#4A148C;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="790" y="180" width="150" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="handler3" value="handlePaymentEvent()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#1B5E20;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="790" y="230" width="150" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="upsert" value="UPSERT handover_case&lt;br&gt;(by unit_id)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#C5E1A5;strokeColor=#33691E;fontSize=12;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="970" y="150" width="140" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#558B2F;" parent="1" source="handler1" target="upsert" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#558B2F;" parent="1" source="handler2" target="upsert" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#558B2F;" parent="1" source="handler3" target="upsert" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="calc-label" value="Status Calculation Logic:" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="790" y="290" width="310" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="status-ready" value="✅ READY = KYC✓ + Contract✓ + Payment✓" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="790" y="315" width="310" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="status-blocked" value="❌ BLOCKED = Any rejected/failed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF9A9A;strokeColor=#C62828;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="790" y="345" width="310" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="status-pending" value="⏳ PENDING = Incomplete" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE082;strokeColor=#F57C00;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="790" y="375" width="310" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="manual-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#283593;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="440" width="520" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="manual-label" value="Manual Handover Process (Staff Action)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="40" y="445" width="520" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="ui" value="Frontend UI&lt;br&gt;(Handover Dashboard)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1565C0;fontSize=12;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="60" y="490" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="api" value="PUT /api/handover/&lt;br&gt;cases/:id/complete" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B3E5FC;strokeColor=#0277BD;fontSize=11;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="230" y="490" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="complete" value="Update Status:&lt;br&gt;COMPLETED" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#81C784;strokeColor=#2E7D32;fontSize=12;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="410" y="490" width="130" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow9" value="Staff clicks&lt;br&gt;Complete" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#1565C0;" parent="1" source="ui" target="api" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow10" value="Update DB" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2E7D32;" parent="1" source="api" target="complete" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="trigger1" value="🎯 Create onboarding_case" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CE93D8;strokeColor=#6A1B9A;fontSize=11;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="60" y="580" width="200" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="trigger2" value="📡 Publish Kafka Event:&lt;br&gt;postsales.handover.completed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCCBC;strokeColor=#BF360C;fontSize=11;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="290" y="580" width="250" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow11" value="Auto-trigger" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#6A1B9A;dashed=1;" parent="1" source="complete" target="trigger1" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow12" value="Publish" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#BF360C;dashed=1;" parent="1" source="complete" target="trigger2" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="schema-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#616161;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="440" width="530" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="schema-label" value="Database Schema" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="600" y="445" width="530" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="table1" value="handover_cases&lt;br&gt;────────────────────&lt;br&gt;• id (uuid PK)&lt;br&gt;• unit_id (text UNIQUE)&lt;br&gt;• customer_id&lt;br&gt;• kyc_status&lt;br&gt;• contract_status&lt;br&gt;• payment_status&lt;br&gt;• overall_status&lt;br&gt;• handover_date&lt;br&gt;• handover_by" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#424242;fontSize=10;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="620" y="485" width="230" height="145" as="geometry"/>
+                </mxCell>
+                <mxCell id="table2" value="handover_events (Audit)&lt;br&gt;────────────────────&lt;br&gt;• id (uuid PK)&lt;br&gt;• case_id (uuid FK)&lt;br&gt;• event_type&lt;br&gt;• event_source&lt;br&gt;• payload (jsonb)&lt;br&gt;• received_at" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#424242;fontSize=10;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="880" y="485" width="230" height="145" as="geometry"/>
+                </mxCell>
+                <mxCell id="notes-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="670" width="1090" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="notes-label" value="🔑 Key Points" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="50" y="675" width="150" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="note1" value="✓ UPSERT by unit_id - แต่ละ unit มี 1 handover case เท่านั้น" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="705" width="500" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="note2" value="✓ Event-Driven - ทีมอื่นไม่ต้องรอกัน publish ได้อิสระ" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="725" width="500" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="note3" value="✓ Auto-Calculate Status - ระบบคำนวณสถานะรวมอัตโนมัติ" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="745" width="500" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="note4" value="✓ Audit Trail - บันทึกทุก event ที่เข้ามาใน handover_events" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="765" width="500" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="note5" value="✓ Graceful Degradation - ถ้าไม่มีข้อมูลทีมใด จะสร้าง case ใหม่และรอทีมอื่น" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="590" y="705" width="520" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="note6" value="✓ Auto-Trigger Onboarding - พอ complete handover จะสร้าง onboarding case ให้อัตโนมัติ" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="590" y="725" width="520" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="note7" value="✓ Kafka Topics - Subscribe: 3 topics | Publish: postsales.handover.completed" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="590" y="745" width="520" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="note8" value="✓ REST API - GET /api/handover/cases, PUT /api/handover/cases/:id/complete" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="590" y="765" width="520" height="20" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -1,0 +1,284 @@
+<mxfile host="app.diagrams.net" modified="2026-05-02T00:00:00.000Z" agent="GitHub Copilot" version="24.0.0" etag="postsales-arch-v1">
+  <diagram name="Post-Sales Complete Architecture" id="postsales-architecture">
+    <mxGraphModel dx="1422" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- Title -->
+        <mxCell id="title" value="Post-Sales Backend Bridge - Complete System Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=26;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="200" y="20" width="1000" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- External Teams Section -->
+        <mxCell id="external-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="1320" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="external-label" value="External Teams (Event Producers &amp; Consumers)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="85" width="1320" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- External Teams -->
+        <mxCell id="team-managing" value="Managing Team&lt;br&gt;(Team 4)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="80" y="130" width="130" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="managing-topic" value="managing.kyc.completed" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="80" y="175" width="130" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="team-legal" value="Legal Team&lt;br&gt;(Team 5)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#4A148C;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="240" y="130" width="200" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="legal-topics" value="purchase.contract.drafted&lt;br&gt;warranty.coverage.registered/verified" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="240" y="165" width="200" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="team-payment" value="Payment Team&lt;br&gt;(Team 6)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#1B5E20;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="470" y="130" width="200" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="payment-topics" value="payment.secondpayment.completed&lt;br&gt;payment.invoice.commonfees.completed" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="470" y="165" width="200" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="team-inventory" value="Inventory Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#E65100;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="700" y="130" width="130" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="inventory-note" value="REST API only" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="700" y="175" width="130" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="team-legal-api" value="Legal Contract API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="860" y="130" width="130" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="legal-api-note" value="REST API only" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="860" y="175" width="130" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="team-ourselves" value="Post-Sales Team&lt;br&gt;(Our System)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B3E5FC;strokeColor=#01579B;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1020" y="130" width="310" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="ourselves-topics" value="PUBLISH: postsales.handover.completed, postsales.onboarding.started,&lt;br&gt;postsales.member.registered, postsales.profile.activated, postsales.defect.*" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="165" width="310" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- Kafka Layer -->
+        <mxCell id="kafka-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;" vertex="1" parent="1">
+          <mxGeometry x="40" y="250" width="1320" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="kafka-label" value="Kafka Message Broker (Event Bus)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="255" width="1320" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="kafka-consumer" value="Kafka Consumer&lt;br&gt;(Subscribe)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFCCBC;strokeColor=#BF360C;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="200" y="290" width="150" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="kafka-topics-sub" value="Topics: managing.kyc.completed,&lt;br&gt;purchase.contract.drafted,&lt;br&gt;payment.*, warranty.*" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="370" y="290" width="200" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="kafka-producer" value="Kafka Producer&lt;br&gt;(Publish)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFCCBC;strokeColor=#BF360C;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="900" y="290" width="150" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="kafka-topics-pub" value="Topics: postsales.handover.completed,&lt;br&gt;postsales.onboarding.started,&lt;br&gt;postsales.member.registered, postsales.*" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="290" width="260" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrows from teams to Kafka -->
+        <mxCell id="arrow-t1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#F57F17;" edge="1" parent="1" source="team-managing" target="kafka-bg">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow-t2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#4A148C;" edge="1" parent="1" source="team-legal" target="kafka-bg">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow-t3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#1B5E20;" edge="1" parent="1" source="team-payment" target="kafka-bg">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Core Services Section -->
+        <mxCell id="services-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="380" width="1320" height="450" as="geometry"/>
+        </mxCell>
+        <mxCell id="services-label" value="Post-Sales Backend Bridge - Core Services" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="385" width="1320" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- Service 1: Handover Readiness -->
+        <mxCell id="service1-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#1B5E20;" vertex="1" parent="1">
+          <mxGeometry x="80" y="430" width="370" height="380" as="geometry"/>
+        </mxCell>
+        <mxCell id="service1-label" value="Service 1: Handover Readiness" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fillColor=#C8E6C9" vertex="1" parent="1">
+          <mxGeometry x="80" y="435" width="370" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="s1-input" value="INPUT (Kafka Events)&lt;br&gt;────────────────────&lt;br&gt;• managing.kyc.completed&lt;br&gt;• purchase.contract.drafted&lt;br&gt;• payment.secondpayment.completed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#424242;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="100" y="475" width="330" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="s1-process" value="PROCESSING&lt;br&gt;────────────────────&lt;br&gt;• Event Handlers (handleKycEvent, etc.)&lt;br&gt;• UPSERT handover_cases by unit_id&lt;br&gt;• Calculate overall_status:&lt;br&gt;  - READY (all 3 approved)&lt;br&gt;  - BLOCKED (any rejected)&lt;br&gt;  - PENDING (incomplete)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="100" y="565" width="330" height="110" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="s1-api" value="REST API&lt;br&gt;────────────────────&lt;br&gt;GET /api/handover/cases&lt;br&gt;GET /api/handover/cases/:id&lt;br&gt;PUT /api/handover/cases/:id/complete" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B3E5FC;strokeColor=#0277BD;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="100" y="685" width="330" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="s1-output" value="OUTPUT&lt;br&gt;────────────────────&lt;br&gt;• Kafka: postsales.handover.completed&lt;br&gt;• Auto-create onboarding_case" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCCBC;strokeColor=#BF360C;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="100" y="755" width="330" height="45" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow-s1-1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1" source="s1-input" target="s1-process">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow-s1-2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#E65100;" edge="1" parent="1" source="s1-process" target="s1-api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow-s1-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0277BD;" edge="1" parent="1" source="s1-api" target="s1-output">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Service 2: Owner Onboarding -->
+        <mxCell id="service2-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#4A148C;" vertex="1" parent="1">
+          <mxGeometry x="480" y="430" width="370" height="380" as="geometry"/>
+        </mxCell>
+        <mxCell id="service2-label" value="Service 2: Owner Onboarding" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fillColor=#E1BEE7" vertex="1" parent="1">
+          <mxGeometry x="480" y="435" width="370" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="s2-trigger" value="TRIGGER&lt;br&gt;────────────────────&lt;br&gt;Auto-create from handover_completed&lt;br&gt;Publish: postsales.onboarding.started" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CE93D8;strokeColor=#6A1B9A;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="500" y="475" width="330" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="s2-steps" value="3-STEP PROCESS&lt;br&gt;────────────────────&lt;br&gt;STEP 1: Member Registration&lt;br&gt;  → Publish: postsales.member.registered&lt;br&gt;STEP 2: Document Upload&lt;br&gt;  → Manual fetch OR Auto via Kafka&lt;br&gt;STEP 3: Completion&lt;br&gt;  → Publish: postsales.profile.activated" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="500" y="540" width="330" height="115" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="s2-integration" value="EXTERNAL INTEGRATION&lt;br&gt;────────────────────&lt;br&gt;• Legal Contract API (REST)&lt;br&gt;• warranty.coverage.registered (Kafka)&lt;br&gt;• Payment Team (Kafka)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="500" y="665" width="330" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="s2-api" value="REST API&lt;br&gt;────────────────────&lt;br&gt;GET /api/onboarding/cases, POST /cases&lt;br&gt;PUT /cases/:id/register, PUT /cases/:id/documents&lt;br&gt;POST /cases/:id/fetch-contract, PUT /cases/:id/complete" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B3E5FC;strokeColor=#0277BD;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="500" y="735" width="330" height="65" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow-s2-1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#6A1B9A;" edge="1" parent="1" source="s2-trigger" target="s2-steps">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow-s2-2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#E65100;" edge="1" parent="1" source="s2-steps" target="s2-integration">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow-s2-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#6A1B9A;" edge="1" parent="1" source="s2-integration" target="s2-api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Service 3: Defect Management -->
+        <mxCell id="service3-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;" vertex="1" parent="1">
+          <mxGeometry x="880" y="430" width="450" height="380" as="geometry"/>
+        </mxCell>
+        <mxCell id="service3-label" value="Service 3: Defect Management" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fillColor=#FFCDD2" vertex="1" parent="1">
+          <mxGeometry x="880" y="435" width="450" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="s3-report" value="PHASE 1: Report Defect&lt;br&gt;────────────────────&lt;br&gt;• POST /api/defects&lt;br&gt;• Generate defect_number (DEF-XXX)&lt;br&gt;• Status: reported" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#424242;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="900" y="475" width="410" height="65" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="s3-warranty" value="PHASE 2: Warranty Check&lt;br&gt;────────────────────&lt;br&gt;• Publish: postsales.warranty.defect.reported&lt;br&gt;• Legal checks warranty coverage&lt;br&gt;• Receive: warranty.coverage.verified" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="900" y="550" width="410" height="65" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="s3-schedule" value="PHASE 3: Schedule Repair&lt;br&gt;────────────────────&lt;br&gt;• PUT /defects/:id/schedule&lt;br&gt;• Assign technician, set date&lt;br&gt;• Publish: postsales.defect.scheduled" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE082;strokeColor=#F57C00;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="900" y="625" width="410" height="65" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="s3-close" value="PHASE 4: Close Case&lt;br&gt;────────────────────&lt;br&gt;• PUT /defects/:id/close&lt;br&gt;• Set resolution, closed_by&lt;br&gt;• Publish: postsales.caseclosed.completed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="900" y="700" width="410" height="65" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="s3-api" value="REST API: POST /defects, GET /defects, GET /defects/:id,&lt;br&gt;PUT /defects/:id/schedule, PUT /defects/:id/close" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B3E5FC;strokeColor=#0277BD;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="900" y="775" width="410" height="35" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow-s3-1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1" source="s3-report" target="s3-warranty">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow-s3-2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#6A1B9A;" edge="1" parent="1" source="s3-warranty" target="s3-schedule">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow-s3-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#F57C00;" edge="1" parent="1" source="s3-schedule" target="s3-close">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow-s3-4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2E7D32;" edge="1" parent="1" source="s3-close" target="s3-api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrows from Kafka to Services -->
+        <mxCell id="arrow-kafka-s1" value="Events" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#1B5E20;dashed=1;" edge="1" parent="1" source="kafka-consumer" target="service1-bg">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow-kafka-s2" value="Events" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#4A148C;dashed=1;" edge="1" parent="1" source="kafka-consumer" target="service2-bg">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrows from Services to Kafka -->
+        <mxCell id="arrow-s1-kafka" value="Publish" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#BF360C;dashed=1;" edge="1" parent="1" source="s1-output" target="kafka-producer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow-s2-kafka" value="Publish" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#BF360C;dashed=1;" edge="1" parent="1" source="s2-api" target="kafka-producer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow-s3-kafka" value="Publish" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#BF360C;dashed=1;" edge="1" parent="1" source="s3-api" target="kafka-producer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Database Layer -->
+        <mxCell id="db-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#616161;" vertex="1" parent="1">
+          <mxGeometry x="40" y="860" width="1320" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="db-label" value="Database Layer (Supabase PostgreSQL)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="865" width="1320" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="db-handover" value="handover_cases&lt;br&gt;handover_events" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#C8E6C9;strokeColor=#2E7D32;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="120" y="905" width="130" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="db-onboarding" value="onboarding_cases&lt;br&gt;onboarding_events" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#E1BEE7;strokeColor=#6A1B9A;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="280" y="905" width="140" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="db-defects" value="defects&lt;br&gt;defect_events" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFCDD2;strokeColor=#C62828;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="450" y="905" width="110" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="db-warranty" value="warranty_coverage" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFE0B2;strokeColor=#E65100;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="590" y="905" width="140" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="db-common" value="common_fees_payments" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFF9C4;strokeColor=#F57F17;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="760" y="905" width="160" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="db-note" value="All tables include: id (uuid PK), created_at, updated_at&lt;br&gt;Event tables store audit trail with: case_id/defect_id (FK), event_type, event_source, payload (jsonb)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="950" y="910" width="390" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrows from services to database -->
+        <mxCell id="arrow-s1-db" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2E7D32;" edge="1" parent="1" source="service1-bg" target="db-handover">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow-s2-db" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#6A1B9A;" edge="1" parent="1" source="service2-bg" target="db-onboarding">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow-s3-db1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#C62828;" edge="1" parent="1" source="service3-bg" target="db-defects">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow-s3-db2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#E65100;" edge="1" parent="1" source="service3-bg" target="db-warranty">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

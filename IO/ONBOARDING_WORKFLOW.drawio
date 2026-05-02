@@ -1,0 +1,265 @@
+<mxfile host="app.diagrams.net" modified="2026-05-02T00:00:00.000Z" agent="GitHub Copilot" version="24.0.0" etag="onboarding-v1">
+  <diagram name="Onboarding Workflow" id="onboarding-workflow">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- Title -->
+        <mxCell id="title" value="Owner Onboarding - 3-Step Workflow" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="320" y="20" width="530" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Trigger Section -->
+        <mxCell id="trigger-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1F5FE;strokeColor=#01579B;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="280" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="trigger-label" value="Auto-Trigger (From Handover)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="85" width="280" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="handover-complete" value="Handover Completed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#81C784;strokeColor=#2E7D32;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="60" y="130" width="240" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="auto-create" value="Auto-Create onboarding_case&lt;br&gt;+ Publish: postsales.onboarding.started" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CE93D8;strokeColor=#6A1B9A;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="190" width="240" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow-trigger" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#6A1B9A;" edge="1" parent="1" source="handover-complete" target="auto-create">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Step 1: Member Registration -->
+        <mxCell id="step1-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;" vertex="1" parent="1">
+          <mxGeometry x="360" y="80" width="250" height="380" as="geometry"/>
+        </mxCell>
+        <mxCell id="step1-label" value="STEP 1: Member Registration" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fillColor=#FFE0B2" vertex="1" parent="1">
+          <mxGeometry x="360" y="85" width="250" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step1-ui" value="RegisterMemberDialog" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1565C0;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="380" y="130" width="210" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step1-fields" value="Form Fields:&lt;br&gt;• Email&lt;br&gt;• Phone&lt;br&gt;• Password&lt;br&gt;• Area Size (sqm)&lt;br&gt;• Billing Cycle&lt;br&gt;• Effective Date" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="380" y="180" width="210" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step1-api" value="PUT /cases/:id/register" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B3E5FC;strokeColor=#0277BD;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="380" y="290" width="210" height="35" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step1-action" value="✓ Update registration_status&lt;br&gt;✓ Hash password (Base64)&lt;br&gt;✓ Store billing info" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="380" y="335" width="210" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step1-event" value="📡 Publish:&lt;br&gt;postsales.member.registered&lt;br&gt;→ Payment Team (Billing Setup)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCCBC;strokeColor=#BF360C;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="380" y="400" width="210" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow1-1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#1565C0;" edge="1" parent="1" source="step1-ui" target="step1-fields">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow1-2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0277BD;" edge="1" parent="1" source="step1-fields" target="step1-api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow1-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2E7D32;" edge="1" parent="1" source="step1-api" target="step1-action">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow1-4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#BF360C;dashed=1;" edge="1" parent="1" source="step1-action" target="step1-event">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Step 2: Document Upload -->
+        <mxCell id="step2-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#4A148C;" vertex="1" parent="1">
+          <mxGeometry x="640" y="80" width="250" height="380" as="geometry"/>
+        </mxCell>
+        <mxCell id="step2-label" value="STEP 2: Document Upload" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fillColor=#E1BEE7" vertex="1" parent="1">
+          <mxGeometry x="640" y="85" width="250" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step2-ui" value="UploadDocumentsDialog" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1565C0;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="660" y="130" width="210" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step2-modes" value="Upload Modes:&lt;br&gt;• File Upload (Base64)&lt;br&gt;• URL Input" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="660" y="180" width="210" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step2-required" value="Required Document:&lt;br&gt;✓ Contract ONLY&lt;br&gt;(No ID card)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;fontSize=10;align=left;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="660" y="240" width="210" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step2-manual" value="🔍 Manual Fetch Button&lt;br&gt;POST /cases/:id/fetch-contract&lt;br&gt;→ Call Legal API directly" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00695C;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="660" y="300" width="210" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step2-auto" value="🤖 Auto-Fetch via Kafka&lt;br&gt;warranty.coverage.registered&lt;br&gt;→ Legal team publishes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="660" y="360" width="210" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step2-api" value="PUT /cases/:id/documents&lt;br&gt;{contractDocumentUrl}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B3E5FC;strokeColor=#0277BD;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="660" y="420" width="210" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow2-1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#1565C0;" edge="1" parent="1" source="step2-ui" target="step2-modes">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow2-2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#F57F17;" edge="1" parent="1" source="step2-modes" target="step2-required">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow2-3" value="Manual" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#00695C;dashed=1;" edge="1" parent="1" source="step2-ui" target="step2-manual">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow2-4" value="Auto" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2E7D32;dashed=1;" edge="1" parent="1" source="step2-ui" target="step2-auto">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow2-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0277BD;" edge="1" parent="1" source="step2-manual" target="step2-api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow2-6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0277BD;" edge="1" parent="1" source="step2-auto" target="step2-api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Step 3: Completion -->
+        <mxCell id="step3-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#1B5E20;" vertex="1" parent="1">
+          <mxGeometry x="920" y="80" width="210" height="380" as="geometry"/>
+        </mxCell>
+        <mxCell id="step3-label" value="STEP 3: Completion" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fillColor=#C8E6C9" vertex="1" parent="1">
+          <mxGeometry x="920" y="85" width="210" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step3-ui" value="CompleteOnboardingDialog" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1565C0;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="940" y="130" width="170" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step3-fields" value="Fields:&lt;br&gt;• completedBy (required)&lt;br&gt;• notes (optional)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="940" y="180" width="170" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step3-api" value="PUT /cases/:id/complete" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B3E5FC;strokeColor=#0277BD;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="940" y="250" width="170" height="35" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step3-action" value="✓ Update overall_status&lt;br&gt;   = completed&lt;br&gt;✓ Set completed_at&lt;br&gt;✓ Set completed_by" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#2E7D32;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="940" y="295" width="170" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step3-event" value="📡 Publish:&lt;br&gt;postsales.profile.activated" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCCBC;strokeColor=#BF360C;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="940" y="375" width="170" height="45" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step3-done" value="✅ ONBOARDING&lt;br&gt;COMPLETE" style="ellipse;whiteSpace=wrap;html=1;fillColor=#66BB6A;strokeColor=#1B5E20;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="940" y="430" width="170" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow3-1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#1565C0;" edge="1" parent="1" source="step3-ui" target="step3-fields">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow3-2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0277BD;" edge="1" parent="1" source="step3-fields" target="step3-api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow3-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2E7D32;" edge="1" parent="1" source="step3-api" target="step3-action">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow3-4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#BF360C;dashed=1;" edge="1" parent="1" source="step3-action" target="step3-event">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow3-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#1B5E20;" edge="1" parent="1" source="step3-event" target="step3-done">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Flow Arrows between steps -->
+        <mxCell id="flow1" value="Registration&lt;br&gt;Complete" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E65100;" edge="1" parent="1" source="step1-bg" target="step2-bg">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="flow2" value="Documents&lt;br&gt;Uploaded" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#4A148C;" edge="1" parent="1" source="step2-bg" target="step3-bg">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Connector from trigger to step 1 -->
+        <mxCell id="flow-trigger" value="Start&lt;br&gt;Onboarding" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#6A1B9A;" edge="1" parent="1" source="auto-create" target="step1-bg">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="350" y="215" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- External Services Section -->
+        <mxCell id="external-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="250" width="280" height="210" as="geometry"/>
+        </mxCell>
+        <mxCell id="external-label" value="External Services Integration" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="255" width="280" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="legal-api" value="Legal Contract API&lt;br&gt;GET /api/contracts/unit/{unitId}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#4A148C;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="295" width="240" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="payment-kafka" value="Payment Team (Kafka)&lt;br&gt;Receive: postsales.member.registered" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="345" width="240" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="legal-kafka" value="Legal Team (Kafka)&lt;br&gt;Publish: warranty.coverage.registered" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCCBC;strokeColor=#BF360C;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="395" width="240" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Database Schema -->
+        <mxCell id="db-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#616161;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="490" width="1090" height="150" as="geometry"/>
+        </mxCell>
+        <mxCell id="db-label" value="Database: onboarding_cases" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="50" y="495" width="300" height="25" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="db-table" value="onboarding_cases Table&lt;br&gt;───────────────────────────────────────────────&lt;br&gt;• id (uuid PK)&lt;br&gt;• handover_case_id (uuid FK)&lt;br&gt;• unit_id (text)&lt;br&gt;• customer_id (text)&lt;br&gt;• email, phone, password_hash&lt;br&gt;• registration_status (pending/completed)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#424242;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="60" y="530" width="330" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="db-table2" value="Status Fields&lt;br&gt;────────────────────────&lt;br&gt;• contract_document_url&lt;br&gt;• document_status (pending/uploaded)&lt;br&gt;• overall_status (pending/in_progress/completed)&lt;br&gt;• completed_by, completed_at, notes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#424242;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="410" y="530" width="330" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="db-table3" value="Billing Info (for Payment)&lt;br&gt;─────────────────────────────&lt;br&gt;• area_size (numeric)&lt;br&gt;• billing_cycle (MONTHLY/QUARTERLY/ANNUALLY)&lt;br&gt;• registered_at, documents_uploaded_at&lt;br&gt;• created_at, updated_at" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#424242;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="760" y="530" width="350" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- Key Features -->
+        <mxCell id="features-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#283593;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="670" width="1090" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="features-label" value="✨ Key Features" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="50" y="675" width="150" height="25" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="feature1" value="✓ Auto-Creation from Handover - เมื่อ handover complete จะสร้าง onboarding case อัตโนมัติ" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="705" width="520" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="feature2" value="✓ 3-Step Sequential Process - Registration → Document Upload → Completion" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="725" width="520" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="feature3" value="✓ Payment Integration - Auto-notify Payment team for billing setup via Kafka" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="745" width="520" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="feature4" value="✓ Legal API Integration - Auto-fetch contract from Legal Contract Service" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="765" width="520" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="feature5" value="✓ Contract Auto-Fill - Both manual (button) and automatic (Kafka event) options" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="590" y="705" width="520" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="feature6" value="✓ Password Security - Base64 encoding for password storage" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="590" y="725" width="520" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="feature7" value="✓ Event Publishing - postsales.onboarding.started, postsales.member.registered, postsales.profile.activated" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="590" y="745" width="520" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="feature8" value="✓ REST API - GET /cases, GET /cases/:id, PUT /cases/:id/register, PUT /cases/:id/documents, PUT /cases/:id/complete" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="590" y="765" width="520" height="20" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

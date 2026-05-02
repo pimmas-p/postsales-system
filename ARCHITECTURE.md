@@ -206,11 +206,11 @@ Completion Events ← Kafka Producer ← Backend ← User Actions ← Dashboard
 1. INCOMING EVENTS (from External Teams via Kafka)
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    
-   Topic: kyc.completed
+   Topic: managing.kyc.completed
    ├─ Payload: { customerId, unitId, status: "approved", ... }
    └─ Handler: handleKycEvent() → Update kyc_status = "approved"
    
-   Topic: legal.contract.drafted
+   Topic: purchase.contract.drafted
    ├─ Payload: { contractId, unitId, status: "ready", ... }
    └─ Handler: handleContractEvent() → Update contract_status = "ready"
    
@@ -694,13 +694,13 @@ app.use((err, req, res, next) => {
 INCOMING TOPICS (Subscribe)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-kyc.completed
-├─ Producer: KYC Team
+managing.kyc.completed
+├─ Producer: Managing Team (Team 4)
 ├─ Consumer: Post-Sales Backend
 ├─ Payload: { customerId, unitId, status, verificationDate, ... }
 └─ Action: Update handover_cases.kyc_status
 
-legal.contract.drafted
+purchase.contract.drafted
 ├─ Producer: Legal Team
 ├─ Consumer: Post-Sales Backend
 ├─ Payload: { contractId, unitId, status, draftDate, ... }
@@ -718,13 +718,13 @@ payment.invoice.commonfees.completed
 ├─ Payload: { invoiceId, customerId, unitId, amount, type: "COMMON_FEE", status: "PAID", paidAt }
 └─ Action: Track common area fees payment (optional)
 
-legal.warranty.coverage.registered
+warranty.coverage.registered
 ├─ Producer: Legal Team (Warranty Service)
 ├─ Consumer: Post-Sales Backend
 ├─ Payload: { contractId, unitId, customerId, startsAt, endsAt, coveredCategories }
 └─ Action: Register warranty coverage for defect management
 
-legal.warranty.coverage.verified
+warranty.coverage.verified
 ├─ Producer: Legal Team (Warranty Service)
 ├─ Consumer: Post-Sales Backend
 ├─ Payload: { claimId, warrantyId, defectId, coverageStatus, coverageReason, verifiedAt }
@@ -769,8 +769,8 @@ const consumer = kafka.consumer({
 
 await consumer.subscribe({
   topics: [
-    'kyc.completed',
-    'legal.contract.drafted',
+    'managing.kyc.completed',
+    'purchase.contract.drafted',
     'payment.secondpayment.completed'
   ]
 });
@@ -780,10 +780,10 @@ await consumer.run({
     const event = JSON.parse(message.value.toString());
     
     switch(topic) {
-      case 'kyc.completed':
+      case 'managing.kyc.completed':
         await handleKycEvent(event);
         break;
-      case 'legal.contract.drafted':
+      case 'purchase.contract.drafted':
         await handleContractEvent(event);
         break;
       case 'payment.secondpayment.completed':
@@ -1097,8 +1097,8 @@ export const getHandoverCaseById = async (id) => {
 SUPABASE_SECRET_KEY=your-supabase-secret-key-here
 
 # ✅ SECURE: Kafka credentials in environment
-KAFKA_SASL_USERNAME=your-kafka-api-key-here
-KAFKA_SASL_PASSWORD=your-kafka-api-secret-here
+KAFKA_API_KEY=your-kafka-api-key-here
+KAFKA_API_SECRET=your-kafka-api-secret-here
 
 # ✅ PROTECTED: Never commit .env files
 # (Already in .gitignore)
@@ -1304,8 +1304,8 @@ SUPABASE_URL=https://itksoxfmkppjsqtvlfjc.supabase.co
 SUPABASE_SECRET_KEY=sb_secret_...
 KAFKA_ENABLED=true
 KAFKA_BOOTSTRAP_SERVERS=pkc-619z3.us-east1.gcp.confluent.cloud:9092
-KAFKA_SASL_USERNAME=...
-KAFKA_SASL_PASSWORD=...
+KAFKA_API_KEY=...
+KAFKA_API_SECRET=...
 ```
 
 ### 11.3 Frontend Deployment (Vercel)
@@ -1624,8 +1624,8 @@ SELECT * FROM handover_cases LIMIT 1;
 
 | Team | Contact Point | Events Produced | Events Consumed |
 |------|--------------|-----------------|-----------------|
-| **KYC Team** | TBD | kyc.completed | - |
-| **Legal Team** | TBD | legal.contract.drafted | - |
+| **Managing Team** | TBD | managing.kyc.completed | - |
+| **Legal Team** | TBD | purchase.contract.drafted | - |
 | **Payment Team** | TBD | payment.secondpayment.completed | postsales.member.registered |
 | **Sale Team** | TBD | - | postsales.handover.completed |
 

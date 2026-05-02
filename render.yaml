@@ -7,7 +7,7 @@ services:
     rootDir: ccloud-nodejs-client/backend-bridge
     buildCommand: npm install
     startCommand: node server.js
-    healthCheckPath: /api/handover/cases
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
@@ -25,9 +25,21 @@ services:
         value: "true"
       - key: KAFKA_BOOTSTRAP_SERVERS
         sync: false
-      - key: KAFKA_SASL_USERNAME
+      - key: KAFKA_API_KEY
         sync: false
-      - key: KAFKA_SASL_PASSWORD
+      - key: KAFKA_API_SECRET
         sync: false
+      - key: KAFKA_DISABLE_SSL_VERIFICATION
+        value: "false"
       - key: KAFKA_CONSUMER_GROUP_ID
         value: postsales-backend-bridge-group
+      - key: INVENTORY_SERVICE_URL
+        sync: false
+      - key: LEGAL_CONTRACT_SERVICE_URL
+        sync: false
+      - key: LEGAL_WARRANTY_SERVICE_URL
+        sync: false
+      - key: LEGAL_ACQUISITION_SERVICE_URL
+        sync: false
+      - key: PAYMENT_SERVICE_URL
+        sync: false

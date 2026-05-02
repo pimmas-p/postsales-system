@@ -71,8 +71,8 @@ async function testConnection() {
       .from('handover_events')
       .insert({
         case_id: newCase.id,
-        event_type: 'kyc.completed',
-        event_source: 'kyc',
+        event_type: 'managing.kyc.completed',
+        event_source: 'managing',
         payload: {
           unitId: newCase.unit_id,
           customerId: newCase.customer_id,

@@ -130,8 +130,8 @@
 |------------|----------|--------------|-------------|
 | `inventory.*` | Inventory | Area unit, room type, room number, ProjectName | For quotation creation |
 | `marketing.*` | Marketing | PropertyID, location, price, promotion | For quotation creation |
-| `kyc.completed` | KYC | Status | For booking confirmation |
-| `legal.contract.drafted` | Legal | ContractID | For booking confirmation |
+| `managing.kyc.completed` | Managing | Status | For booking confirmation |
+| `purchase.contract.drafted` | Legal | ContractID | For booking confirmation |
 | `payment.secondpayment.completed` | Payment | Payment status | For booking confirmation |
 | `marketing.survey.*` | Marketing | saleId, customerId, feedback, rating | Survey status update |
 
@@ -277,7 +277,7 @@ Post-Sales Defect Flow:
 | Event Topic | Producer | Request Data | Description |
 |------------|----------|--------------|-------------|
 | `sale.availableunit.completed` | Sales | property status, booking cost, payment amount | Property status has been inspected |
-| `legal.contract.drafted` | Legal | contract status, payment amount | Contract drafted |
+| `purchase.contract.drafted` | Legal | contract status, payment amount | Contract drafted |
 | `payment.ceo.approved` | CEO | payment approved | Payment approval from CEO |
 | `sale.transfer.completed` | Sales | sale status | Sale has been completed |
 | `postsales.member.registered` | **Post-Sales** | customerId, unitId, areaSize, effectiveDate, billingCycle | **Owner Account Activated (for account receivable)** |
@@ -331,8 +331,8 @@ Post-Sales Defect Flow:
 
 | Event Topic | Producer | Description | Topic Name in Excel |
 |------------|----------|-------------|---------------------|
-| `kyc.completed` | KYC | KYC verification completed | "KYCHasBeenMade" |
-| `legal.contract.drafted` | Legal | Purchase contract drafted | "PurchaseContactHasBeenDraft" |
+| `managing.kyc.completed` | Managing | KYC verification completed | "KYCHasBeenMade" |
+| `purchase.contract.drafted` | Legal | Purchase contract drafted | "PurchaseContactHasBeenDraft" |
 | `payment.secondpayment.completed` | Payment | Second payment made | "second payment has been made" |
 | `payment.invoice.commonfees.completed` | Payment | Common fees payment completed | "common fees payment completed" |
 | `warranty.coverage.registered` | Legal | Warranty coverage registered | - |
@@ -388,11 +388,11 @@ POST-SALES INTEGRATION MAP
 INCOMING (Subscribe):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┌─────────────┐
-│ KYC Team    │ → kyc.completed
+│Managing Team│ → managing.kyc.completed
 └─────────────┘   └─→ Post-Sales: Update kyc_status
 
 ┌─────────────┐
-│ Legal Team  │ → legal.contract.drafted
+│ Legal Team  │ → purchase.contract.drafted
 └─────────────┘   └─→ Post-Sales: Update contract_status
 
 ┌─────────────┐
@@ -489,7 +489,7 @@ postsales.handover.completed
 **Examples:**
 - `payment.secondpayment.completed`
 - `postsales.handover.completed`
-- `legal.contract.drafted`
+- `purchase.contract.drafted`
 
 ### 10.3 Recommended Standard
 
@@ -518,8 +518,8 @@ Examples:
 ### 11.1 Post-Sales Dependencies
 
 **Pre-Handover (Must Complete):**
-1. ✅ KYC verification (`kyc.completed`)
-2. ✅ Contract drafted (`legal.contract.drafted`)
+1. ✅ KYC verification (`managing.kyc.completed`)
+2. ✅ Contract drafted (`purchase.contract.drafted`)
 3. ✅ Second payment (`payment.secondpayment.completed`)
 
 **Post-Handover:**

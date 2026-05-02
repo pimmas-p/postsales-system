@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS handover_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   case_id UUID REFERENCES handover_cases(id) ON DELETE CASCADE,
   
-  event_type VARCHAR(100) NOT NULL, -- kyc.completed, legal.contract.drafted, payment.secondpayment.completed
-  event_source VARCHAR(100) NOT NULL, -- kyc, legal, payment, postsales
+  event_type VARCHAR(100) NOT NULL, -- managing.kyc.completed, purchase.contract.drafted, payment.secondpayment.completed
+  event_source VARCHAR(100) NOT NULL, -- managing, legal, payment, postsales
   
   payload JSONB NOT NULL, -- Full event data
   

@@ -15,8 +15,8 @@ KYC → Legal → Payment → Post-Sale (ready for handover)
 ```
 
 **Current Implementation:**
-- ✅ Subscribe to `kyc.completed` (from KYC team)
-- ✅ Subscribe to `legal.contract.drafted` (from Legal team)
+- ✅ Subscribe to `managing.kyc.completed` (from Managing team)
+- ✅ Subscribe to `purchase.contract.drafted` (from Legal team)
 - ✅ Subscribe to `payment.secondpayment.completed` (from Payment team)
 - ✅ API: `PUT /api/handover/cases/:id/complete` - Mark handover completed
 - ✅ Frontend integration: HandoverDetail page with Contract, Payment, Unit data
@@ -153,8 +153,8 @@ payment completed → member registration → post-sale
 ### **Inbound Events (Subscribe)**
 | Topic | Producer | Handler | Status |
 |-------|----------|---------|--------|
-| `kyc.completed` | KYC Team | Update handover case | ⚠️ Not implemented yet |
-| `legal.contract.drafted` | Legal Team | Update handover case | ⚠️ Not implemented yet |
+| `managing.kyc.completed` | Managing Team | Update handover case | ⚠️ Not implemented yet |
+| `purchase.contract.drafted` | Legal Team | Update handover case | ⚠️ Not implemented yet |
 | `payment.secondpayment.completed` | Payment Team | Update handover case, trigger onboarding | ⚠️ Not implemented yet |
 
 **Note:** Kafka integration is disabled by default (`KAFKA_ENABLED=false`)
@@ -182,8 +182,8 @@ payment completed → member registration → post-sale
 - **Issue:** Events subscribed and published are documented but not coded
 - **Current:** Kafka is disabled (`KAFKA_ENABLED=false`)
 - **Action Needed:** Implement Kafka consumer handlers for:
-  - `kyc.completed` → Update handover `kyc_status`
-  - `legal.contract.drafted` → Update handover `contract_status`
+  - `managing.kyc.completed` → Update handover `kyc_status`
+  - `purchase.contract.drafted` → Update handover `contract_status`
   - `payment.secondpayment.completed` → Update handover `payment_status`
 
 ### 3. **Missing Diagram Flow: "Repair Appointment"**

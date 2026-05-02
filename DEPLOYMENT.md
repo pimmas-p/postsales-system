@@ -75,8 +75,8 @@ SUPABASE_SECRET_KEY=your-supabase-secret-key-here
 # Kafka Configuration
 KAFKA_ENABLED=true
 KAFKA_BOOTSTRAP_SERVERS=pkc-619z3.us-east1.gcp.confluent.cloud:9092
-KAFKA_SASL_USERNAME=your-kafka-api-key-here
-KAFKA_SASL_PASSWORD=your-kafka-api-secret-here
+KAFKA_API_KEY=your-kafka-api-key-here
+KAFKA_API_SECRET=your-kafka-api-secret-here
 KAFKA_CONSUMER_GROUP_ID=postsales-backend-bridge-group
 ```
 
@@ -199,8 +199,8 @@ This updates CORS to allow your Vercel frontend to call backend APIs.
 | `SUPABASE_SECRET_KEY` | `eyJhbG...` | Service role key (backend only) |
 | `KAFKA_ENABLED` | `true` | Enable Kafka consumer/producer |
 | `KAFKA_BOOTSTRAP_SERVERS` | `pkc-619z3...` | Kafka cluster URL |
-| `KAFKA_SASL_USERNAME` | `XYEXLQ...` | Kafka API Key |
-| `KAFKA_SASL_PASSWORD` | `dwflJO...` | Kafka API Secret |
+| `KAFKA_API_KEY` | `XYEXLQ...` | Kafka API Key |
+| `KAFKA_API_SECRET` | `dwflJO...` | Kafka API Secret |
 | `KAFKA_CONSUMER_GROUP_ID` | `postsales-backend-bridge-group` | Kafka consumer group |
 
 ### 4.2 Frontend Environment Variables (Vercel)
@@ -265,7 +265,7 @@ If CORS error appears:
 Check Render logs:
 ```
 ✅ Kafka consumer connected!
-📡 Subscribed to topics: kyc.completed, legal.contract.drafted, payment.secondpayment.completed, ...
+📡 Subscribed to topics: managing.kyc.completed, purchase.contract.drafted, payment.secondpayment.completed, payment.invoice.commonfees.completed, warranty.coverage.registered, warranty.coverage.verified
 ```
 
 If Kafka fails to connect:

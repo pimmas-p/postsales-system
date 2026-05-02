@@ -88,8 +88,8 @@ GET    /api/handover/stats              # Get statistics
 ## 🔄 Kafka Integration
 
 ### Subscribed Topics (Consumer)
-- `kyc.completed` - From KYC team
-- `legal.contract.drafted` - From Legal team  
+- `managing.kyc.completed` - From Managing team (Team 4)
+- `purchase.contract.drafted` - From Legal team  
 - `payment.secondpayment.completed` - From Payment team
 
 ### Published Topics (Producer)
@@ -169,9 +169,9 @@ node test-producer.js
 
 ## 📊 Event Flow Examples
 
-### KYC Event → Database
+### Managing KYC Event → Database
 ```javascript
-// Incoming event from kyc.completed topic
+// Incoming event from managing.kyc.completed topic
 {
   "unitId": "UNIT-001",
   "customerId": "CUST-001",

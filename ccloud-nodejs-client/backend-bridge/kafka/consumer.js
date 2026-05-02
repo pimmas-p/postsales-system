@@ -97,17 +97,11 @@ async function startConsumer() {
         
         const event = JSON.parse(message.value.toString());
         
-        // Verbose logging in development only
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`\n📩 Received event from ${topic}:`);
-          console.log(`   Partition: ${partition}`);
-          console.log(`   Offset: ${message.offset}`);
-          console.log(`   Key: ${message.key?.toString()}`);
-          console.log(`   Timestamp: ${new Date(parseInt(message.timestamp)).toISOString()}`);
-        } else {
-          // Production: compact logging
-          console.log(`[Kafka] Received: ${topic} (offset: ${message.offset})`);
-        }
+        console.log(`\n📩 Received event from ${topic}:`);
+        console.log(`   Partition: ${partition}`);
+        console.log(`   Offset: ${message.offset}`);
+        console.log(`   Timestamp: ${new Date(parseInt(message.timestamp)).toISOString()}`);
+        console.log(`   Payload:`, JSON.stringify(event, null, 2));
 
         // Route to appropriate handler
         switch (topic) {
@@ -133,9 +127,7 @@ async function startConsumer() {
             console.warn(`⚠️  Unknown topic: ${topic}`);
         }
 
-        if (process.env.NODE_ENV === 'development') {
           console.log(`✅ Event processed successfully\n`);
-        }
       } catch (error) {
         console.error(`❌ Error processing message from ${topic}:`, error.message);
         console.error(error.stack);

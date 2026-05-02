@@ -19,9 +19,7 @@ const allowedOrigins = [
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
-if (process.env.NODE_ENV === 'development') {
   console.log('🔐 CORS allowed origins:', allowedOrigins);
-}
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -51,9 +49,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Request logging (development only)
 app.use((req, res, next) => {
-  if (process.env.NODE_ENV === 'development') {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  }
   next();
 });
 

@@ -96,7 +96,8 @@ A comprehensive event-driven system for managing post-sales operations including
 ## 🎯 Features
 
 ### 1. Handover Readiness Management 📋
-- **2-Condition Status Calculation**: Contract (drafted) + Payment (completed) = Ready
+- **2-Condition Status Calculation**: Contract (DRAFT/PENDING_SIGN/SIGNED) + Payment (completed) = Ready
+- **ถ้าสัญญาเป็น DRAFT ไม่จำเป็นต้องรอ SIGNED**
 - Track contract and payment status from external teams
 - Manage handover dates and assignments
 - Complete handover workflow with Kafka event publishing
@@ -122,7 +123,7 @@ A comprehensive event-driven system for managing post-sales operations including
 ### Kafka Topics We Subscribe To (4 topics)
 | Topic | Source | Purpose |
 |-------|--------|---------|
-| `contract.drafted` | Legal Team | Contract ready for handover |
+| `contract.drafted` | Legal Team | Contract ready (DRAFT/PENDING_SIGN/SIGNED all valid) |
 | `payment.secondpayment.completed` | Payment Team | Payment completed |
 | `payment.invoice.commonfees.completed` | Payment Team | Common fee payment |
 | `warranty.coverage.verified` | Legal Team | **Response:** Warranty verification result (COVERED/REJECTED) |

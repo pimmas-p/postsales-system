@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS handover_cases (
   customer_id VARCHAR(100) NOT NULL,
   
   -- Status from External Teams (via Kafka events)
-  contract_status VARCHAR(50), -- NULL (pending), 'drafted', 'rejected'
+  contract_status VARCHAR(50), -- NULL (pending), 'DRAFT', 'PENDING_SIGN', 'SIGNED', 'CANCELLED'
   contract_id VARCHAR(100), -- Contract ID from Legal team
   payment_status VARCHAR(50), -- NULL (pending), 'completed', 'failed'
   payment_amount DECIMAL(15, 2), -- Second payment amount

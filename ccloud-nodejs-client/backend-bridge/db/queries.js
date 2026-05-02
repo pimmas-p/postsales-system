@@ -195,18 +195,24 @@ function calculateOverallStatus(contractStatus, paymentStatus) {
     return 'pending';
   }
 
-  // Both conditions must be met for handover to be ready
-  const bothCompleted = 
-    contractStatus === 'drafted' &&
-    paymentStatus === 'completed';
-
-  if (bothCompleted) {
-    return 'ready';
+  // Check for blocked status first
+  if (contractStatus === 'CANCELLED' || contractStatus === 'rejected' || paymentStatus === 'failed') {
+    return 'blocked';
   }
 
-  // Check for any blocked status
-  if (contractStatus === 'rejected' || paymentStatus === 'failed') {
-    return 'blocked';
+  // Valid contract statuses: DRAFT, PENDING_SIGN, SIGNED
+  // ✅ If contract is DRAFT, no need to wait for complete (SIGNED)
+  const contractValid = 
+    contractStatus === 'DRAFT' || 
+    contractStatus === 'PENDING_SIGN' || 
+    contractStatus === 'SIGNED' ||
+    contractStatus === 'drafted'; // Legacy support
+
+  const paymentValid = paymentStatus === 'completed';
+
+  // Both conditions must be met for handover to be ready
+  if (contractValid && paymentValid) {
+    return 'ready';
   }
 
   return 'pending';

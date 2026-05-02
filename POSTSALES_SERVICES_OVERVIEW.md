@@ -22,7 +22,7 @@
 
 ### 🎯 วัตถุประสงค์
 จัดการการส่งมอบห้อง (Handover) ให้เจ้าของ โดยติดตาม 2 เงื่อนไขหลัก:
-1. ✅ Contract drafted (จาก Legal Team)
+1. ✅ Contract valid (DRAFT/PENDING_SIGN/SIGNED จาก Legal Team) - **ถ้าเป็น DRAFT ไม่จำเป็นต้องรอ SIGNED**
 2. ✅ Second payment completed (จาก Payment Team)
 
 ### 📥 ข้อมูลที่ใช้จากทีมอื่น (Subscribe Events)
@@ -119,15 +119,23 @@ Phase 2: ตรวจสอบเงื่อนไข (Auto Calculation)
     [calculateOverallStatus()] ใน queries.js
          │
          ↓
-    IF (contract_status = 'drafted' AND 
+    IF (contract_status IN ['DRAFT', 'PENDING_SIGN', 'SIGNED'] AND 
         payment_status = 'completed')
     THEN
         overall_status = 'ready'
+    ELSE IF (contract_status = 'CANCELLED' OR payment_status = 'failed')
+    THEN
+        overall_status = 'blocked'
+    ELSE
+        overall_status = 'pending'
     END IF
 
     ┌──────────────────────────────────────┐
     │  🎉 Ready for Handover!              │
     │  overall_status: ready               │
+    │                                      │
+    │  ✅ DRAFT ก็ส่งมอบได้เลย            │
+    │  ไม่ต้องรอเซ็นสัญญา                 │
     └──────────────────────────────────────┘
 
 ─────────────────────────────────────────────────────────────────

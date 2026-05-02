@@ -8,6 +8,8 @@
     "dev": "nodemon server.js",
     "test": "node test-supabase-connection.js",
     "kafka:test": "node examples/test-send-kafka-event.js",
+    "kafka:create-topics": "node scripts/create-kafka-topics.js",
+    "kafka:check-subscribe": "node scripts/check-subscribe-topics.js",
     "kafka:send:handover": "node examples/kafka-producer-example.js 1",
     "kafka:send:onboarding": "node examples/kafka-producer-example.js 2",
     "simulate:api": "node examples/simulate-via-api.js",

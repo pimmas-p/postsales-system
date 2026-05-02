@@ -35,6 +35,9 @@ async function publishHandoverCompleted(handoverData) {
 
     const topic = 'postsales.handover.completed';
     
+    console.log(`\n📥 Received handover data:`);
+    console.log(JSON.stringify(handoverData, null, 2));
+    
     const event = {
       eventId: require('uuid').v4(),
       eventType: 'postsales.handover.completed',
@@ -52,6 +55,9 @@ async function publishHandoverCompleted(handoverData) {
       }
     };
 
+    console.log(`\n📤 Publishing event to ${topic}:`);
+    console.log(JSON.stringify(event, null, 2));
+
     const message = {
       topic,
       messages: [{
@@ -59,10 +65,6 @@ async function publishHandoverCompleted(handoverData) {
         value: JSON.stringify(event)
       }]
     };
-
-      console.log(`\n📤 Publishing event to ${topic}:`);
-      console.log(`   Unit ID: ${handoverData.unit_id}`);
-      console.log(`   Customer ID: ${handoverData.customer_id}`);
 
     const result = await producer.send(message);
     
@@ -97,6 +99,9 @@ async function publishOnboardingStarted(onboardingData) {
 
     const topic = 'postsales.onboarding.started';
     
+    console.log(`\n📥 Received onboarding data:`);
+    console.log(JSON.stringify(onboardingData, null, 2));
+    
     const event = {
       eventId: require('uuid').v4(),
       eventType: 'postsales.onboarding.started',
@@ -112,12 +117,15 @@ async function publishOnboardingStarted(onboardingData) {
       }
     };
 
+    console.log(`\n📤 Publishing event to ${topic}:`);
+    console.log(JSON.stringify(event, null, 2));
+
     await producer.send({
       topic,
       messages: [{ key: onboardingData.unitId, value: JSON.stringify(event) }]
     });
 
-    console.log(`✅ Published: ${topic} - Unit: ${onboardingData.unitId}`);
+    console.log(`\n✅ Published successfully!`);
     
   } catch (error) {
     console.error('❌ Failed to publish Kafka event:', {
@@ -142,6 +150,9 @@ async function publishMemberRegistered(memberData) {
 
     const topic = 'postsales.member.registered';
     
+    console.log(`\n📥 Received member data:`);
+    console.log(JSON.stringify(memberData, null, 2));
+    
     const event = {
       eventId: require('uuid').v4(),
       eventType: 'postsales.member.registered',
@@ -161,14 +172,17 @@ async function publishMemberRegistered(memberData) {
       }
     };
 
+    console.log(`\n📤 Publishing event to ${topic}:`);
+    console.log(JSON.stringify(event, null, 2));
+
     await producer.send({
       topic,
       messages: [{ key: memberData.customerId, value: JSON.stringify(event) }]
     });
 
-    console.log(`✅ Published: ${topic} - Customer: ${memberData.customerId}`);
-    console.log(`   📍 Unit: ${memberData.unitId}, Area: ${memberData.areaSize || 'N/A'} sqm`);
-    console.log(`   💰 Fee Rate: ${memberData.feeRatePerSqm || 45.0} THB/sqm, Cycle: ${memberData.billingCycle || 'MONTHLY'}`);
+    console.log(`\n✅ Published successfully!`);
+    console.log(`   Customer: ${memberData.customerId}, Unit: ${memberData.unitId}`);
+    console.log(`   Area: ${memberData.areaSize || 'N/A'} sqm, Fee: ${memberData.feeRatePerSqm || 45.0} THB/sqm\n`);
     
   } catch (error) {
     console.error('❌ Failed to publish Kafka event:', {
@@ -193,6 +207,9 @@ async function publishOnboardingCompleted(completionData) {
 
     const topic = 'postsales.profile.activated';
     
+    console.log(`\n📥 Received completion data:`);
+    console.log(JSON.stringify(completionData, null, 2));
+    
     const event = {
       eventId: require('uuid').v4(),
       eventType: 'postsales.profile.activated',
@@ -209,12 +226,15 @@ async function publishOnboardingCompleted(completionData) {
       }
     };
 
+    console.log(`\n📤 Publishing event to ${topic}:`);
+    console.log(JSON.stringify(event, null, 2));
+
     await producer.send({
       topic,
       messages: [{ key: completionData.unitId, value: JSON.stringify(event) }]
     });
 
-    console.log(`✅ Published: ${topic} - Unit: ${completionData.unitId}`);
+    console.log(`\n✅ Published successfully!`);
     
   } catch (error) {
     console.error('❌ Failed to publish Kafka event:', {
@@ -239,6 +259,9 @@ async function publishDefectClosed(closeData) {
 
     const topic = 'postsales.caseclosed.completed';
     
+    console.log(`\n📥 Received close data:`);
+    console.log(JSON.stringify(closeData, null, 2));
+    
     const event = {
       eventId: require('uuid').v4(),
       eventType: 'postsales.caseclosed.completed',
@@ -255,12 +278,15 @@ async function publishDefectClosed(closeData) {
       }
     };
 
+    console.log(`\n📤 Publishing event to ${topic}:`);
+    console.log(JSON.stringify(event, null, 2));
+
     await producer.send({
       topic,
       messages: [{ key: closeData.unitId, value: JSON.stringify(event) }]
     });
 
-    console.log(`✅ Published: ${topic} - Defect #${closeData.defectNumber} closed`);
+    console.log(`\n✅ Published successfully! - Defect #${closeData.defectNumber} closed`);
     
   } catch (error) {
     console.error('❌ Failed to publish Kafka event:', {
@@ -285,6 +311,9 @@ async function publishWarrantyDefectReported(defectData) {
 
     const topic = 'warranty.defect.reported';
     
+    console.log(`\n📥 Received defect data:`);
+    console.log(JSON.stringify(defectData, null, 2));
+    
     const event = {
       eventId: require('uuid').v4(),
       eventType: 'warranty.defect.reported',
@@ -304,12 +333,15 @@ async function publishWarrantyDefectReported(defectData) {
       }
     };
 
+    console.log(`\n📤 Publishing event to ${topic}:`);
+    console.log(JSON.stringify(event, null, 2));
+
     await producer.send({
       topic,
       messages: [{ key: defectData.unit_id, value: JSON.stringify(event) }]
     });
 
-    console.log(`✅ Published: ${topic} - Defect #${defectData.defect_number} reported to Legal`);
+    console.log(`\n✅ Published successfully! - Defect #${defectData.defect_number} reported to Legal`);
     
   } catch (error) {
     console.error('❌ Failed to publish Kafka event:', {

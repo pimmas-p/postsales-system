@@ -93,11 +93,16 @@ async function startConsumer() {
         
         const event = JSON.parse(message.value.toString());
         
-        console.log(`\n📩 Received event from ${topic}:`);
+        console.log(`\n${'='.repeat(80)}`);
+        console.log(`📩 RECEIVED EVENT from topic: ${topic}`);
+        console.log(`${'='.repeat(80)}`);
         console.log(`   Partition: ${partition}`);
         console.log(`   Offset: ${message.offset}`);
         console.log(`   Timestamp: ${new Date(parseInt(message.timestamp)).toISOString()}`);
-        console.log(`   Payload:`, JSON.stringify(event, null, 2));
+        console.log(`\n📦 Event Payload:`);
+        console.log(JSON.stringify(event, null, 2));
+
+        console.log(`\n⚙️  Processing event...`);
 
         // Route to appropriate handler
         switch (topic) {
@@ -120,10 +125,13 @@ async function startConsumer() {
             console.warn(`⚠️  Unknown topic: ${topic}`);
         }
 
-          console.log(`✅ Event processed successfully\n`);
+        console.log(`\n✅ Event processed successfully!`);
+        console.log(`${'='.repeat(80)}\n`);
       } catch (error) {
-        console.error(`❌ Error processing message from ${topic}:`, error.message);
-        console.error(error.stack);
+        console.error(`\n❌ ERROR processing message from ${topic}:`);
+        console.error(`   Message: ${error.message}`);
+        console.error(`   Stack: ${error.stack}`);
+        console.error(`${'='.repeat(80)}\n`);
       }
     }
   });

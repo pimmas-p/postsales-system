@@ -12,51 +12,42 @@ const { Kafka } = require('@confluentinc/kafka-javascript').KafkaJS;
 const { readKafkaConfig } = require('../kafka/config');
 
 const REQUIRED_TOPICS = [
-  {
-    topic: 'managing.kyc.complete',
-    description: 'Managing Team - KYC completion events',
-    numPartitions: 1,
-    replicationFactor: 3
-  },
-  {
-    topic: 'purchase.contract.drafted',
-    description: 'Legal Team - Contract drafted events',
-    numPartitions: 1,
-    replicationFactor: 3
-  },
-  {
-    topic: 'payment.secondpayment.completed',
-    description: 'Payment Team - Second payment completion events',
-    numPartitions: 1,
-    replicationFactor: 3
-  },
-  {
-    topic: 'payment.invoice.commonfees.completed',
-    description: 'Payment Team - Common fees payment events',
-    numPartitions: 1,
-    replicationFactor: 3
-  },
-  {
-    topic: 'warranty.coverage.verified-topic',
-    description: 'Legal Team - Warranty verification events',
-    numPartitions: 1,
-    replicationFactor: 3
-  },
+  // ═══════════════════════════════════════════════════════════════
+  // � OUR PUBLISH TOPICS (6) - Topics we produce for other teams
+  // ═══════════════════════════════════════════════════════════════
   {
     topic: 'postsales.handover.completed',
-    description: 'Post-Sales - Handover completion events (our service)',
+    description: '📤 Post-Sales → Sales/Marketing: Handover completion events',
     numPartitions: 1,
     replicationFactor: 3
   },
   {
     topic: 'postsales.onboarding.started',
-    description: 'Post-Sales - Onboarding started events (our service)',
+    description: '📤 Post-Sales Internal: Onboarding started events',
     numPartitions: 1,
     replicationFactor: 3
   },
   {
-    topic: 'postsales.onboarding.completed',
-    description: 'Post-Sales - Onboarding completed events (our service)',
+    topic: 'postsales.member.registered',
+    description: '📤 Post-Sales → Payment Team: Member registration for billing setup 🔥 CRITICAL',
+    numPartitions: 1,
+    replicationFactor: 3
+  },
+  {
+    topic: 'postsales.profile.activated',
+    description: '📤 Post-Sales → CRM/Marketing: Profile activation after payment',
+    numPartitions: 1,
+    replicationFactor: 3
+  },
+  {
+    topic: 'warranty.defect.reported',
+    description: '📤 Post-Sales → Legal Team: Defect warranty verification request',
+    numPartitions: 1,
+    replicationFactor: 3
+  },
+  {
+    topic: 'postsales.caseclosed.completed',
+    description: '📤 Post-Sales → Marketing: Defect case closed events',
     numPartitions: 1,
     replicationFactor: 3
   }

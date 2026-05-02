@@ -63,13 +63,22 @@ function addErrorInterceptor(client, serviceName) {
   client.interceptors.response.use(
     response => response,
     error => {
+      const status = error.response?.status;
       const errorInfo = {
         service: serviceName,
         url: error.config?.url,
         method: error.config?.method,
-        status: error.response?.status,
+        status: status,
         message: error.response?.data?.message || error.message
       };
+      
+      // Skip logging for Payment 404 (they use Kafka, not REST API)
+      if (serviceName === 'Payment' && status === 404) {
+        // Don't log - this is expected behavior
+        error.userMessage = `Payment service uses Kafka events only`;
+        error.serviceInfo = errorInfo;
+        return Promise.reject(error);
+      }
       
       console.error(`❌ External API Error (${serviceName}):`, errorInfo);
       
@@ -361,17 +370,27 @@ async function getPaymentDetails(customerId, unitId = null) {
     return response.data;
     
   } catch (error) {
+    const status = error.response?.status;
+    
+    // 404 = Payment team doesn't provide GET endpoint (they use Kafka only)
+    // 503 = Service unavailable
+    if (status === 404) {
+      console.log(`ℹ️  Payment API endpoint not available (404) - Payment team uses Kafka events only`);
+      return null;
+    }
+    
+    if (status === 503) {
+      console.warn('⚠️  Payment service is currently unavailable (503)');
+      return null;
+    }
+    
+    // Log other errors
     console.error(`❌ Failed to get payment details for customer ${customerId}:`, {
       message: error.message,
-      status: error.response?.status,
+      status: status,
       endpoint: error.config?.url,
       baseURL: PAYMENT_BASE_URL
     });
-    
-    // Return graceful null if service is unavailable (503)
-    if (error.response?.status === 503) {
-      console.warn('⚠️  Payment service is currently unavailable (503)');
-    }
     
     return null;
   }

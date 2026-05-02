@@ -133,7 +133,9 @@ router.put('/cases/:id/complete', async (req, res) => {
         customerId: completedCase.customer_id,
         areaSize: null // Will be set during member registration
       });
-      console.log(`✅ Onboarding case created automatically: ${onboardingCase.id}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`✅ Onboarding case created automatically: ${onboardingCase.id}`);
+      }
     } catch (onboardingError) {
       console.error('❌ Failed to create onboarding case:', onboardingError.message);
       // Continue even if onboarding creation fails - don't block handover completion
@@ -231,13 +233,26 @@ router.get('/:id/contract', async (req, res) => {
       });
     }
     
+    // Check if contract_id exists
+    if (!handoverCase.contract_id) {
+      return res.status(200).json({
+        success: true,
+        data: null,
+        message: 'ยังไม่มีข้อมูล Contract - อาจเกิดจาก Legal ยังไม่ได้ส่ง event',
+        reason: 'NO_CONTRACT_ID'
+      });
+    }
+    
     // Call Legal Contract Service
     const contractData = await externalApi.getContractDetails(handoverCase.contract_id);
     
     if (!contractData) {
-      return res.status(503).json({
-        success: false,
-        error: 'Unable to fetch contract information from Legal Contract Service'
+      return res.status(200).json({
+        success: true,
+        data: null,
+        message: 'ไม่สามารถเชื่อมต่อ Legal Contract Service ได้',
+        reason: 'SERVICE_UNAVAILABLE',
+        contractId: handoverCase.contract_id
       });
     }
     
@@ -272,6 +287,16 @@ router.get('/:id/payment', async (req, res) => {
       });
     }
     
+    // Check if required IDs exist
+    if (!handoverCase.customer_id || !handoverCase.unit_id) {
+      return res.status(200).json({
+        success: true,
+        data: null,
+        message: 'ยังไม่มีข้อมูล Customer/Unit ID',
+        reason: 'MISSING_IDS'
+      });
+    }
+    
     // Call Payment Service
     const paymentData = await externalApi.getPaymentDetails(
       handoverCase.customer_id,
@@ -279,9 +304,13 @@ router.get('/:id/payment', async (req, res) => {
     );
     
     if (!paymentData) {
-      return res.status(503).json({
-        success: false,
-        error: 'Unable to fetch payment information from Payment Service'
+      return res.status(200).json({
+        success: true,
+        data: null,
+        message: 'ไม่สามารถเชื่อมต่อ Payment Service ได้',
+        reason: 'SERVICE_UNAVAILABLE',
+        customerId: handoverCase.customer_id,
+        unitId: handoverCase.unit_id
       });
     }
     
@@ -304,7 +333,9 @@ router.get('/:id/payment', async (req, res) => {
  */
 router.post('/migrate-to-onboarding', async (req, res) => {
   try {
-    console.log('🔄 Starting onboarding migration...');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 Starting onboarding migration...');
+    }
     
     // Get all completed handover cases
     const completedCases = await getAllHandoverCases({ status: 'completed' });
@@ -325,7 +356,9 @@ router.post('/migrate-to-onboarding', async (req, res) => {
         });
 
         if (existing && existing.length > 0) {
-          console.log(`⏭️  Skipped: Onboarding already exists for ${handoverCase.unit_id}`);
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`⏭️  Skipped: Onboarding already exists for ${handoverCase.unit_id}`);
+          }
           results.skipped++;
           continue;
         }
@@ -338,7 +371,9 @@ router.post('/migrate-to-onboarding', async (req, res) => {
           areaSize: null
         });
 
-        console.log(`✅ Created onboarding case for ${handoverCase.unit_id}`);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`✅ Created onboarding case for ${handoverCase.unit_id}`);
+        }
         results.created++;
       } catch (error) {
         console.error(`❌ Error for ${handoverCase.unit_id}:`, error.message);
@@ -381,13 +416,26 @@ router.get('/:id/unit', async (req, res) => {
       });
     }
     
+    // Check if unit_id exists
+    if (!handoverCase.unit_id) {
+      return res.status(200).json({
+        success: true,
+        data: null,
+        message: 'ยังไม่มีข้อมูล Unit ID',
+        reason: 'MISSING_UNIT_ID'
+      });
+    }
+    
     // Call Inventory Service
     const unitData = await externalApi.getPropertyDetails(handoverCase.unit_id);
     
     if (!unitData) {
-      return res.status(503).json({
-        success: false,
-        error: 'Unable to fetch unit information from Inventory Service'
+      return res.status(200).json({
+        success: true,
+        data: null,
+        message: 'ไม่สามารถเชื่อมต่อ Inventory Service ได้',
+        reason: 'SERVICE_UNAVAILABLE',
+        unitId: handoverCase.unit_id
       });
     }
     
@@ -402,6 +450,70 @@ router.get('/:id/unit', async (req, res) => {
       error: error.message
     });
   }
+});
+
+/**
+ * GET /api/handover/health/external-services
+ * Check health of all external services (diagnostic endpoint)
+ */
+router.get('/health/external-services', async (req, res) => {
+  const results = {
+    timestamp: new Date().toISOString(),
+    services: {}
+  };
+
+  // Test Legal Contract Service
+  try {
+    const testResult = await externalApi.getContractByUnit('TEST_UNIT');
+    results.services.legalContract = {
+      status: 'online',
+      url: process.env.LEGAL_CONTRACT_SERVICE_URL,
+      message: 'Service is responding'
+    };
+  } catch (error) {
+    results.services.legalContract = {
+      status: 'offline',
+      url: process.env.LEGAL_CONTRACT_SERVICE_URL,
+      error: error.message
+    };
+  }
+
+  // Test Payment Service
+  try {
+    const testResult = await externalApi.getPaymentDetails('TEST_CUSTOMER', 'TEST_UNIT');
+    results.services.payment = {
+      status: 'online',
+      url: process.env.PAYMENT_SERVICE_URL,
+      message: 'Service is responding'
+    };
+  } catch (error) {
+    results.services.payment = {
+      status: 'offline',
+      url: process.env.PAYMENT_SERVICE_URL,
+      error: error.message
+    };
+  }
+
+  // Test Inventory Service
+  try {
+    const testResult = await externalApi.getPropertyDetails('TEST_UNIT');
+    results.services.inventory = {
+      status: 'online',
+      url: process.env.INVENTORY_SERVICE_URL,
+      message: 'Service is responding'
+    };
+  } catch (error) {
+    results.services.inventory = {
+      status: 'offline',
+      url: process.env.INVENTORY_SERVICE_URL,
+      error: error.message
+    };
+  }
+
+  res.json({
+    success: true,
+    data: results
+  });
 });
 
 module.exports = router;

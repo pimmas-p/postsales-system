@@ -22,7 +22,9 @@ const externalApi = require('./externalApi');
  * Topic: managing.kyc.completed
  */
 async function handleKycEvent(event) {
-  console.log('   📋 Processing KYC event...');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('   📋 Processing KYC event...');
+  }
   
   // ⚠️ No official documentation - Support both camelCase and snake_case as fallback
   const unitId = event.unitId || event.unit_id;
@@ -64,16 +66,34 @@ async function handleKycEvent(event) {
     payload: event
   });
 
-  console.log(`   ✅ KYC event processed for unit: ${unitId}`);
-  console.log(`   📊 Overall status: ${updatedCase.overall_status}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`   ✅ KYC event processed for unit: ${unitId}`);
+    console.log(`   📊 Overall status: ${updatedCase.overall_status}`);
+  }
 }
 
 /**
- * Handle Contract drafted event
- * Team 5 (Legal) format - camelCase as per Team 5 CSV documentation
+ * Handle Purchase Contract drafted event
+ * Legal team (Team 5) - Purchase contract drafted (sale completed)
+ * Topic: purchase.contract.drafted
+ * 
+ * Expected Schema (camelCase per Legal CSV documentation):
+ * {
+ *   contractId: <UUID>,
+ *   bookingId: <UUID>,
+ *   unitId: <UUID>,
+ *   customerId: <UUID>,
+ *   status: <enum: DRAFT|PENDING_SIGN|SIGNED|CANCELLED>,
+ *   fileUrl: <string>,
+ *   templateId: <UUID>,
+ *   createdAt: <ISO8601>,
+ *   draftedAt: <ISO8601>
+ * }
  */
 async function handleContractEvent(event) {
-  console.log('   📋 Processing Contract event...');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('   📋 Processing Contract event...');
+  }
   
   // ✅ Team 5 format - camelCase ONLY
   const contractId = event.contractId;
@@ -110,12 +130,14 @@ async function handleContractEvent(event) {
 
   await insertHandoverEvent({
     case_id: updatedCase.id,
-    event_type: 'legal.contract.drafted',
+    event_type: 'purchase.contract.drafted',
     event_source: 'legal',
     payload: event
   });
 
-  console.log(`   ✅ Contract event processed for unit: ${unitId}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`   ✅ Contract event processed for unit: ${unitId}`);
+  }
 }
 
 /**
@@ -124,7 +146,9 @@ async function handleContractEvent(event) {
  * Team 6 CSV format - camelCase ONLY
  */
 async function handlePaymentEvent(event) {
-  console.log('   📋 Processing Payment event...');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('   📋 Processing Payment event...');
+  }
   
   // ✅ Unwrap Payment team's wrapper format
   const eventData = event.success ? event.data : event;
@@ -168,9 +192,11 @@ async function handlePaymentEvent(event) {
     payload: event
   });
 
-  console.log(`   ✅ Payment event processed for unit: ${unitId}`);
-  console.log(`   💰 Amount: ${paymentAmount}`);
-  console.log(`   📊 Overall status: ${updatedCase.overall_status}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`   ✅ Payment event processed for unit: ${unitId}`);
+    console.log(`   💰 Amount: ${paymentAmount}`);
+    console.log(`   📊 Overall status: ${updatedCase.overall_status}`);
+  }
 }
 
 /**
@@ -179,7 +205,9 @@ async function handlePaymentEvent(event) {
  * Supports both camelCase and snake_case field names from different teams
  */
 async function handleCommonFeesEvent(event) {
-  console.log('   📋 Processing Common Fees event...');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('   📋 Processing Common Fees event...');
+  }
   
   // Parse Payment team's wrapper format if present
   const eventData = event.success ? event.data : event;
@@ -198,22 +226,27 @@ async function handleCommonFeesEvent(event) {
   
   // For now, just log the event (no UI implementation yet)
   // In future: Store in separate common_fees_payments table
-  console.log(`   ✅ Common fees tracked for unit: ${unitId}`);
-  console.log(`   💰 Amount: ${amount} THB, Type: ${type}`);
-  console.log(`   📄 Invoice ID: ${invoiceId}, Ref ID: ${refId}`);
-  console.log(`   📅 Issued: ${issuedAt}, Paid: ${paidAt}`);
-  console.log(`   🏢 Property ID: ${propertyId}`);
-  console.log(`   ℹ️  Note: Common fees tracking logged but not stored in database yet`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`   ✅ Common fees tracked for unit: ${unitId}`);
+    console.log(`   💰 Amount: ${amount} THB, Type: ${type}`);
+    console.log(`   📄 Invoice ID: ${invoiceId}, Ref ID: ${refId}`);
+    console.log(`   📅 Issued: ${issuedAt}, Paid: ${paidAt}`);
+    console.log(`   🏢 Property ID: ${propertyId}`);
+    console.log(`   ℹ️  Note: Common fees tracking logged but not stored in database yet`);
+  }
 }
 
 /**
  * Handle Warranty Coverage Registered event from Legal team
  * Store warranty coverage info for defect management
  * Auto-fill contract document for onboarding cases
+ * Topic: warranty.coverage.registered (Legal team - Team 5)
  * Team 5 (Legal) format - camelCase as per Team 5 CSV documentation
  */
 async function handleWarrantyRegisteredEvent(event) {
-  console.log('   📋 Processing Warranty Registration event...');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('   📋 Processing Warranty Registration event...');
+  }
   
   // ✅ Team 5 format - camelCase ONLY
   const warrantyId = event.warrantyId;
@@ -235,16 +268,20 @@ async function handleWarrantyRegisteredEvent(event) {
       coveredCategories
     });
     
-    console.log(`   ✅ Warranty registered for unit: ${unitId}`);
-    console.log(`   📅 Coverage: ${startsAt} to ${endsAt}`);
-    console.log(`   📋 Categories: ${coveredCategories?.join(', ') || 'All'}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`   ✅ Warranty registered for unit: ${unitId}`);
+      console.log(`   📅 Coverage: ${startsAt} to ${endsAt}`);
+      console.log(`   📋 Categories: ${coveredCategories?.join(', ') || 'All'}`);
+    }
   } catch (error) {
     console.error(`   ❌ Failed to store warranty coverage:`, error.message);
   }
 
   // Auto-fill contract document for onboarding case
   try {
-    console.log(`   🔍 Checking for onboarding case to auto-fill contract...`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`   🔍 Checking for onboarding case to auto-fill contract...`);
+    }
     
     // Fetch contract document from Legal API
     let contractDocumentUrl = null;
@@ -253,8 +290,10 @@ async function handleWarrantyRegisteredEvent(event) {
     const contractData = await externalApi.getContractByUnit(unitId);
     if (contractData && contractData.fileUrl) {
       contractDocumentUrl = contractData.fileUrl;
-      console.log(`   ✅ Contract document URL retrieved from Legal API`);
-    } else {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`   ✅ Contract document URL retrieved from Legal API`);
+      }
+    } else if (process.env.NODE_ENV === 'development') {
       console.log(`   ⚠️  No contract document URL available from Legal API`);
     }
 
@@ -265,10 +304,10 @@ async function handleWarrantyRegisteredEvent(event) {
         contractDocumentUrl
       });
 
-      if (updatedCase) {
+      if (updatedCase && process.env.NODE_ENV === 'development') {
         console.log(`   ✨ Contract document auto-filled for onboarding case`);
       }
-    } else {
+    } else if (process.env.NODE_ENV === 'development') {
       console.log(`   ℹ️  Skipping contract auto-fill (no document URL)`);
     }
 
@@ -281,10 +320,13 @@ async function handleWarrantyRegisteredEvent(event) {
 /**
  * Handle Warranty Coverage Verified event from Legal team
  * Update defect case with warranty verification result
+ * Topic: warranty.coverage.verified (Legal team - Team 5)
  * Team 5 (Legal) format - camelCase as per Team 5 CSV documentation
  */
 async function handleWarrantyVerifiedEvent(event) {
-  console.log('   📋 Processing Warranty Verification event...');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('   📋 Processing Warranty Verification event...');
+  }
   
   // ✅ Team 5 format - camelCase ONLY
   const claimId = event.claimId;
@@ -311,9 +353,11 @@ async function handleWarrantyVerifiedEvent(event) {
       verifiedAt
     });
     
-    console.log(`   ✅ Warranty verified for defect: ${defectId}`);
-    console.log(`   📊 Coverage: ${coverageStatus}`);
-    console.log(`   💬 Reason: ${coverageReason || 'No reason provided'}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`   ✅ Warranty verified for defect: ${defectId}`);
+      console.log(`   📊 Coverage: ${coverageStatus}`);
+      console.log(`   💬 Reason: ${coverageReason || 'No reason provided'}`);
+    }
   } catch (error) {
     console.error(`   ❌ Failed to update defect warranty status:`, error.message);
   }

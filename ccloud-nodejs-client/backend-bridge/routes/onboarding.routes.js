@@ -265,12 +265,16 @@ router.put('/cases/:id/register', async (req, res) => {
     try {
       propertyDetails = await externalApi.getPropertyDetails(currentCase.unit_id);
       if (propertyDetails) {
-        console.log(`✅ Property validated via Inventory API: ${propertyDetails.propertyId}`);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`✅ Property validated via Inventory API: ${propertyDetails.propertyId}`);
+        }
         
         // Use areaSize from Inventory if available and not provided in request
         if (!finalAreaSize && propertyDetails.areaSize) {
           finalAreaSize = propertyDetails.areaSize;
-          console.log(`📐 Using areaSize from Inventory API: ${finalAreaSize} sqm`);
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`📐 Using areaSize from Inventory API: ${finalAreaSize} sqm`);
+          }
         }
       }
     } catch (inventoryError) {
@@ -281,7 +285,9 @@ router.put('/cases/:id/register', async (req, res) => {
     // Final fallback: use existing DB value if no new value provided
     if (!finalAreaSize && currentCase.area_size) {
       finalAreaSize = currentCase.area_size;
-      console.log(`📐 Using existing areaSize from DB: ${finalAreaSize} sqm`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`📐 Using existing areaSize from DB: ${finalAreaSize} sqm`);
+      }
     }
 
     const updatedCase = await onboardingQueries.updateMemberRegistration(id, {
@@ -311,7 +317,9 @@ router.put('/cases/:id/register', async (req, res) => {
         propertyId: updatedCase.unit_id, // Use unitId as propertyId
         timestamp: new Date().toISOString()
       });
-      console.log(`✅ Member registration published to Payment team for billing setup`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`✅ Member registration published to Payment team for billing setup`);
+      }
     } catch (kafkaError) {
       console.warn('Failed to publish member.registered event:', kafkaError.message);
     }

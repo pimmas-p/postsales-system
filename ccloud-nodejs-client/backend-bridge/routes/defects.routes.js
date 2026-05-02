@@ -189,7 +189,7 @@ router.post('/cases', async (req, res) => {
     // Optional: Get property history from Inventory for context
     try {
       const propertyHistory = await externalApi.getPropertyHistory(unitId);
-      if (propertyHistory) {
+      if (propertyHistory && process.env.NODE_ENV === 'development') {
         console.log(`✅ Property history retrieved for unit ${unitId}`);
         // Future: Use history to assess if defect is recurring
       }
@@ -202,7 +202,7 @@ router.post('/cases', async (req, res) => {
     // This publishes event for Legal to verify if defect is covered
     try {
       const warrantyResult = await producer.publishWarrantyDefectReported(newDefect);
-      if (warrantyResult?.success) {
+      if (warrantyResult?.success && process.env.NODE_ENV === 'development') {
         console.log(`✅ Warranty check requested for defect ${newDefect.defect_number}`);
       }
     } catch (warrantyError) {

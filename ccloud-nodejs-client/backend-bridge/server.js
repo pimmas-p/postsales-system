@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
-const { startConsumer } = require('./kafka/consumer');
+const { startConsumer, getConsumerStatus } = require('./kafka/consumer');
 const { initProducer } = require('./kafka/producer');
 const handoverRoutes = require('./routes/handover.routes');
 const onboardingRoutes = require('./routes/onboarding.routes');
@@ -19,7 +19,9 @@ const allowedOrigins = [
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
-console.log('🔐 CORS allowed origins:', allowedOrigins);
+if (process.env.NODE_ENV === 'development') {
+  console.log('🔐 CORS allowed origins:', allowedOrigins);
+}
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -47,9 +49,11 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging
+// Request logging (development only)
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  }
   next();
 });
 
@@ -59,6 +63,15 @@ app.get('/health', (req, res) => {
     status: 'ok',
     service: 'postsales-backend-bridge',
     timestamp: new Date().toISOString()
+  });
+});
+
+// Kafka status endpoint
+app.get('/kafka/status', (req, res) => {
+  const status = getConsumerStatus();
+  res.json({
+    success: true,
+    data: status
   });
 });
 
@@ -124,26 +137,30 @@ async function startServer() {
     
     console.log('');
 
-    // Skip Kafka initialization for development (uncomment when Kafka is available)
-    console.log('⏭️  Skipping Kafka initialization (REST API only mode)\n');
-    
-    // // Initialize Kafka producer (skip errors for development)
-    // try {
-    //   await initProducer();
-    //   console.log('✅ Kafka producer initialized');
-    // } catch (error) {
-    //   console.warn('⚠️  Kafka producer initialization failed (continuing without Kafka)');
-    //   console.warn('   Error:', error.message);
-    // }
+    // Initialize Kafka if enabled
+    if (process.env.KAFKA_ENABLED === 'true') {
+      console.log('🔌 Kafka is enabled - Initializing Kafka connections...\n');
+      
+      // Initialize Kafka producer
+      try {
+        await initProducer();
+        console.log('✅ Kafka producer initialized');
+      } catch (error) {
+        console.warn('⚠️  Kafka producer initialization failed (continuing without producer)');
+        console.warn('   Error:', error.message);
+      }
 
-    // // Start Kafka consumer (skip errors for development)
-    // try {
-    //   await startConsumer();
-    //   console.log('✅ Kafka consumer started\n');
-    // } catch (error) {
-    //   console.warn('⚠️  Kafka consumer initialization failed (continuing without Kafka)');
-    //   console.warn('   Error:', error.message);
-    // }
+      // Start Kafka consumer
+      try {
+        await startConsumer();
+        console.log('✅ Kafka consumer started\n');
+      } catch (error) {
+        console.warn('⚠️  Kafka consumer initialization failed (continuing without consumer)');
+        console.warn('   Error:', error.message);
+      }
+    } else {
+      console.log('⏭️  Kafka is disabled (KAFKA_ENABLED=false) - REST API only mode\n');
+    }
 
     // Start Express server
     app.listen(PORT, () => {
@@ -154,7 +171,9 @@ async function startServer() {
       console.log(`   • Handover Service:   /api/handover/*`);
       console.log(`   • Onboarding Service: /api/onboarding/*`);
       console.log(`   • Defect Service:     /api/defects/*`);
-      console.log(`\n📡 REST API ready (Kafka events disabled)\n`);
+      
+      const kafkaStatus = process.env.KAFKA_ENABLED === 'true' ? '✅ Kafka events enabled' : '📡 REST API only (Kafka disabled)';
+      console.log(`\n${kafkaStatus}\n`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

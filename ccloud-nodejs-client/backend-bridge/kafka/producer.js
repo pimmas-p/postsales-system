@@ -60,15 +60,21 @@ async function publishHandoverCompleted(handoverData) {
       }]
     };
 
-    console.log(`\n📤 Publishing event to ${topic}:`);
-    console.log(`   Unit ID: ${handoverData.unit_id}`);
-    console.log(`   Customer ID: ${handoverData.customer_id}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`\n📤 Publishing event to ${topic}:`);
+      console.log(`   Unit ID: ${handoverData.unit_id}`);
+      console.log(`   Customer ID: ${handoverData.customer_id}`);
+    }
 
     const result = await producer.send(message);
     
-    console.log(`✅ Event published successfully!`);
-    console.log(`   Partition: ${result[0].partition}`);
-    console.log(`   Offset: ${result[0].baseOffset}\n`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`✅ Event published successfully!`);
+      console.log(`   Partition: ${result[0].partition}`);
+      console.log(`   Offset: ${result[0].baseOffset}\n`);
+    } else {
+      console.log(`[Kafka] Published: ${topic} (unit: ${handoverData.unit_id})`);
+    }
 
     return result;
     
@@ -166,9 +172,13 @@ async function publishMemberRegistered(memberData) {
       messages: [{ key: memberData.customerId, value: JSON.stringify(event) }]
     });
 
-    console.log(`✅ Published: ${topic} - Customer: ${memberData.customerId}`);
-    console.log(`   📍 Unit: ${memberData.unitId}, Area: ${memberData.areaSize || 'N/A'} sqm`);
-    console.log(`   💰 Fee Rate: ${memberData.feeRatePerSqm || 45.0} THB/sqm, Cycle: ${memberData.billingCycle || 'MONTHLY'}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`✅ Published: ${topic} - Customer: ${memberData.customerId}`);
+      console.log(`   📍 Unit: ${memberData.unitId}, Area: ${memberData.areaSize || 'N/A'} sqm`);
+      console.log(`   💰 Fee Rate: ${memberData.feeRatePerSqm || 45.0} THB/sqm, Cycle: ${memberData.billingCycle || 'MONTHLY'}`);
+    } else {
+      console.log(`[Kafka] Published: ${topic} (customer: ${memberData.customerId})`);
+    }
     
   } catch (error) {
     console.error('❌ Failed to publish Kafka event:', {

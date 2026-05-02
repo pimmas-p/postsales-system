@@ -5,7 +5,6 @@ const {
   handleContractEvent, 
   handlePaymentEvent,
   handleCommonFeesEvent,
-  handleWarrantyRegisteredEvent,
   handleWarrantyVerifiedEvent
 } = require('../services/eventHandlers');
 
@@ -15,12 +14,11 @@ let lastMessageTimestamp = null;
 
 // Track messages received per topic
 const topicStats = {
-  'managing.kyc.completed': { count: 0, lastReceived: null },
+  'managing.kyc.complete': { count: 0, lastReceived: null },
   'purchase.contract.drafted': { count: 0, lastReceived: null },
   'payment.secondpayment.completed': { count: 0, lastReceived: null },
   'payment.invoice.commonfees.completed': { count: 0, lastReceived: null },
-  'warranty.coverage.registered': { count: 0, lastReceived: null },
-  'warranty.coverage.verified': { count: 0, lastReceived: null }
+  'warranty.coverage.verified-topic': { count: 0, lastReceived: null }
 };
 
 /**
@@ -65,20 +63,18 @@ async function startConsumer() {
   isConnected = true;
   console.log('✅ Kafka consumer connected!');
 
-  // Subscribe to topics
-  // - managing.kyc.completed: Managing team (Team 4) - KYC completion
-  // - purchase.contract.drafted: Legal team (Team 5) - Purchase contract drafted (sale completed)
-  // - payment.secondpayment.completed: Payment team (Team 6) - Second payment
-  // - payment.invoice.commonfees.completed: Payment team (Team 6) - Common fees
-  // - warranty.coverage.registered: Legal team (Team 5) - Warranty registration (fixed topic name)
-  // - warranty.coverage.verified: Legal team (Team 5) - Warranty verification (fixed topic name)
+  // Subscribe to topics (ตามตาราง integration)
+  // - managing.kyc.complete: Managing team - KYC completion
+  // - purchase.contract.drafted: Legal team - Purchase contract drafted
+  // - payment.secondpayment.completed: Payment team - Second payment
+  // - payment.invoice.commonfees.completed: Payment team - Common fees
+  // - warranty.coverage.verified-topic: Legal team - Warranty verification
   const topics = [
-    'managing.kyc.completed',
+    'managing.kyc.complete',
     'purchase.contract.drafted',
     'payment.secondpayment.completed',
     'payment.invoice.commonfees.completed',
-    'warranty.coverage.registered',
-    'warranty.coverage.verified'
+    'warranty.coverage.verified-topic'
   ];
 
   await consumer.subscribe({ topics });
@@ -105,7 +101,7 @@ async function startConsumer() {
 
         // Route to appropriate handler
         switch (topic) {
-          case 'managing.kyc.completed':
+          case 'managing.kyc.complete':
             await handleKycEvent(event);
             break;
           case 'purchase.contract.drafted':
@@ -117,10 +113,7 @@ async function startConsumer() {
           case 'payment.invoice.commonfees.completed':
             await handleCommonFeesEvent(event);
             break;
-          case 'warranty.coverage.registered':
-            await handleWarrantyRegisteredEvent(event);
-            break;
-          case 'warranty.coverage.verified':
+          case 'warranty.coverage.verified-topic':
             await handleWarrantyVerifiedEvent(event);
             break;
           default:

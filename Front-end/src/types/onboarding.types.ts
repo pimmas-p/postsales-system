@@ -18,6 +18,12 @@ export interface OnboardingCase {
   document_status: DocumentStatus;
   documents_uploaded_at: string | null;
   
+  // Payment Status (Step 4 Gatekeeper)
+  payment_status: PaymentStatus;
+  payment_verified_at: string | null;
+  payment_amount: number | null;
+  payment_reference_id: string | null;
+  
   // Overall Status
   overall_status: OnboardingOverallStatus;
   
@@ -33,6 +39,7 @@ export interface OnboardingCase {
 
 export type RegistrationStatus = 'pending' | 'completed' | 'failed';
 export type DocumentStatus = 'pending' | 'uploaded' | 'verified';
+export type PaymentStatus = 'pending' | 'paid' | 'failed';
 export type OnboardingOverallStatus = 'pending' | 'in_progress' | 'completed';
 
 export interface OnboardingEvent {

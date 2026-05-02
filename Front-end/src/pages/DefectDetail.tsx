@@ -5,7 +5,6 @@ import {
   Grid, 
   Chip, 
   Button,
-  Stack,
   Card,
   CardContent,
   Divider,
@@ -30,13 +29,13 @@ import {
   Warning,
   CheckCircle,
   Schedule,
-  Person,
   Home,
   CalendarToday,
   Assignment,
   ShieldOutlined,
   History,
   PhotoCamera,
+  Person,
 } from '@mui/icons-material';
 import { StatusChip } from '../components/StatusChip';
 import { format } from 'date-fns';
@@ -48,12 +47,22 @@ export const DefectDetail: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  // Dialog states
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [completeRepairDialogOpen, setCompleteRepairDialogOpen] = useState(false);
   const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+
+  // Form data states
   const [scheduleData, setScheduleData] = useState({
-    assignedTo: '',
     scheduledDate: '',
+    technicianName: '',
+    estimatedDuration: '',
     repairNotes: ''
+  });
+  const [completeRepairData, setCompleteRepairData] = useState({
+    completedBy: '',
+    completionNotes: '',
+    photoAfterUrl: ''
   });
   const [closeData, setCloseData] = useState({
     closedBy: '',
@@ -61,12 +70,22 @@ export const DefectDetail: React.FC = () => {
     photoAfterUrl: ''
   });
 
+  // Mutations
   const scheduleMutation = useMutation({
     mutationFn: (data: any) => defectApi.scheduleRepair(id!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['defects', id] });
       setScheduleDialogOpen(false);
-      setScheduleData({ assignedTo: '', scheduledDate: '', repairNotes: '' });
+      setScheduleData({ scheduledDate: '', technicianName: '', estimatedDuration: '', repairNotes: '' });
+    }
+  });
+
+  const completeRepairMutation = useMutation({
+    mutationFn: (data: any) => defectApi.completeRepair(id!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['defects', id] });
+      setCompleteRepairDialogOpen(false);
+      setCompleteRepairData({ completedBy: '', completionNotes: '', photoAfterUrl: '' });
     }
   });
 
@@ -97,16 +116,23 @@ export const DefectDetail: React.FC = () => {
     enabled: !!id,
   });
 
-  // Fetch unit history
-  const { data: unitHistory } = useQuery({
+  // Fetch unit history (with graceful error handling)
+  const { data: unitHistory, isError: unitHistoryError } = useQuery({
     queryKey: ['defects', id, 'unit-history'],
     queryFn: async () => {
-      const response = await fetch(`${API_BASE_URL}/api/defects/${id}/unit-history`);
-      if (!response.ok) return null;
-      const data = await response.json();
-      return data.data;
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/defects/${id}/unit-history`);
+        if (!response.ok) return null;
+        const data = await response.json();
+        return data.data;
+      } catch (error) {
+        console.warn('Failed to fetch unit history:', error);
+        return null;
+      }
     },
     enabled: !!id,
+    retry: 1, // Only retry once
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
   if (isLoading) {
@@ -343,46 +369,76 @@ export const DefectDetail: React.FC = () => {
               <div className="d-flex align-items-center" style={{ gap: '8px', marginBottom: '16px' }}>
                 <History color="action" />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Unit History
+                  Property Details
                 </Typography>
               </div>
               
-              {unitHistory.events && unitHistory.events.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {unitHistory.events.slice(0, 5).map((event: any, index: number) => (
-                    <div key={index}>
-                      <div className="d-flex" style={{ gap: '16px' }}>
-                        <Avatar 
-                          sx={{ 
-                            width: 32, 
-                            height: 32, 
-                            bgcolor: 'primary.light',
-                            fontSize: '0.875rem'
-                          }}
-                        >
-                          {index + 1}
-                        </Avatar>
-                        <div style={{ flex: 1 }}>
-                          <Typography variant="body2" fontWeight={600}>
-                            {event.event_type || event.title}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {event.timestamp ? format(new Date(event.timestamp), 'MMM dd, yyyy HH:mm') : 'N/A'}
-                          </Typography>
-                          {event.description && (
-                            <Typography variant="body2" sx={{ mt: 0.5 }}>
-                              {event.description}
-                            </Typography>
-                          )}
-                        </div>
+              {unitHistoryError ? (
+                <Typography variant="body2" color="error" sx={{ fontStyle: 'italic' }}>
+                  Unable to load property details from Inventory Service
+                </Typography>
+              ) : unitHistory?.propertyId ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div>
+                    <Typography variant="caption" color="text.secondary">Property ID</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{unitHistory.propertyId}</Typography>
+                  </div>
+                  <Divider />
+                  <div>
+                    <Typography variant="caption" color="text.secondary">Unit Number</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{unitHistory.unitNumber}</Typography>
+                  </div>
+                  <Divider />
+                  <div>
+                    <Typography variant="caption" color="text.secondary">Status</Typography>
+                    <Chip 
+                      label={unitHistory.status} 
+                      size="small" 
+                      color={unitHistory.status === 'AVAILABLE' ? 'success' : 'warning'}
+                      sx={{ mt: 0.5 }}
+                    />
+                  </div>
+                  <Divider />
+                  <div>
+                    <Typography variant="caption" color="text.secondary">Address</Typography>
+                    <Typography variant="body2">{unitHistory.fullAddress}</Typography>
+                  </div>
+                  <Divider />
+                  <div>
+                    <Typography variant="caption" color="text.secondary">Property Type</Typography>
+                    <Typography variant="body2">{unitHistory.propertyType}</Typography>
+                  </div>
+                  <Divider />
+                  <div>
+                    <Typography variant="caption" color="text.secondary">Area</Typography>
+                    <Typography variant="body2">{unitHistory.totalSquareFootage} sq.ft | {unitHistory.roomCount} rooms</Typography>
+                  </div>
+                  <Divider />
+                  <div>
+                    <Typography variant="caption" color="text.secondary">Purchase Price</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'primary.main' }}>
+                      {unitHistory.purchasePrice?.toLocaleString()} {unitHistory.currency || 'THB'}
+                    </Typography>
+                  </div>
+                  {unitHistory.purchaseDate && (
+                    <>
+                      <Divider />
+                      <div>
+                        <Typography variant="caption" color="text.secondary">Purchase Date</Typography>
+                        <Typography variant="body2">
+                          {format(new Date(unitHistory.purchaseDate), 'MMM dd, yyyy')}
+                        </Typography>
                       </div>
-                      {index < unitHistory.events.length - 1 && <Divider sx={{ mt: 2 }} />}
-                    </div>
-                  ))}
+                    </>
+                  )}
                 </div>
+              ) : unitHistory === null ? (
+                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                  Property details temporarily unavailable
+                </Typography>
               ) : (
                 <Typography variant="body2" color="text.secondary">
-                  No history available for this unit
+                  No property details available
                 </Typography>
               )}
             </Paper>
@@ -421,7 +477,7 @@ export const DefectDetail: React.FC = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <Box>
                     <Typography variant="caption" color="text.secondary">Contract ID</Typography>
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {warranty.contract_id || 'N/A'}
                     </Typography>
                   </Box>
@@ -429,7 +485,7 @@ export const DefectDetail: React.FC = () => {
                   {warranty.coverage_end_date && (
                     <Box>
                       <Typography variant="caption" color="text.secondary">Coverage Until</Typography>
-                      <Typography variant="body2" fontWeight={600}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         {format(new Date(warranty.coverage_end_date), 'MMM dd, yyyy')}
                       </Typography>
                     </Box>
@@ -462,7 +518,8 @@ export const DefectDetail: React.FC = () => {
               Actions
             </Typography>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/* Reported → Schedule Repair */}
               {defect.status === 'reported' && (
                 <Button 
                   fullWidth 
@@ -474,7 +531,21 @@ export const DefectDetail: React.FC = () => {
                 </Button>
               )}
 
-              {defect.status === 'scheduled' && (
+              {/* In Progress → Complete Repair */}
+              {defect.status === 'in_progress' && (
+                <Button 
+                  fullWidth 
+                  variant="contained"
+                  color="success"
+                  startIcon={<Build />}
+                  onClick={() => setCompleteRepairDialogOpen(true)}
+                >
+                  Complete Repair
+                </Button>
+              )}
+
+              {/* Resolved → Close Case */}
+              {defect.status === 'resolved' && (
                 <Button 
                   fullWidth 
                   variant="contained"
@@ -535,20 +606,26 @@ export const DefectDetail: React.FC = () => {
         <DialogContent>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '8px' }}>
             <TextField
-              label="Contractor Name"
-              required
-              fullWidth
-              value={scheduleData.assignedTo}
-              onChange={(e) => setScheduleData({ ...scheduleData, assignedTo: e.target.value })}
-            />
-            <TextField
               label="Scheduled Date"
               type="datetime-local"
               required
               fullWidth
               value={scheduleData.scheduledDate}
               onChange={(e) => setScheduleData({ ...scheduleData, scheduledDate: e.target.value })}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+            <TextField
+              label="Technician Name"
+              fullWidth
+              value={scheduleData.technicianName}
+              onChange={(e) => setScheduleData({ ...scheduleData, technicianName: e.target.value })}
+            />
+            <TextField
+              label="Estimated Duration"
+              fullWidth
+              placeholder="e.g., 2 hours"
+              value={scheduleData.estimatedDuration}
+              onChange={(e) => setScheduleData({ ...scheduleData, estimatedDuration: e.target.value })}
             />
             <TextField
               label="Repair Notes"
@@ -565,9 +642,57 @@ export const DefectDetail: React.FC = () => {
           <Button 
             variant="contained" 
             onClick={() => scheduleMutation.mutate(scheduleData)}
-            disabled={!scheduleData.assignedTo || !scheduleData.scheduledDate || scheduleMutation.isPending}
+            disabled={!scheduleData.scheduledDate || scheduleMutation.isPending}
           >
             {scheduleMutation.isPending ? 'Scheduling...' : 'Schedule'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Complete Repair Dialog */}
+      <Dialog 
+        open={completeRepairDialogOpen} 
+        onClose={() => setCompleteRepairDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Complete Repair</DialogTitle>
+        <DialogContent>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '8px' }}>
+            <TextField
+              label="Completed By"
+              required
+              fullWidth
+              value={completeRepairData.completedBy}
+              onChange={(e) => setCompleteRepairData({ ...completeRepairData, completedBy: e.target.value })}
+            />
+            <TextField
+              label="Completion Notes"
+              multiline
+              rows={4}
+              fullWidth
+              value={completeRepairData.completionNotes}
+              onChange={(e) => setCompleteRepairData({ ...completeRepairData, completionNotes: e.target.value })}
+              placeholder="Describe what was done to fix the defect..."
+            />
+            <TextField
+              label="Photo URL (After Repair)"
+              fullWidth
+              value={completeRepairData.photoAfterUrl}
+              onChange={(e) => setCompleteRepairData({ ...completeRepairData, photoAfterUrl: e.target.value })}
+              placeholder="https://..."
+            />
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCompleteRepairDialogOpen(false)}>Cancel</Button>
+          <Button 
+            variant="contained"
+            color="success"
+            onClick={() => completeRepairMutation.mutate(completeRepairData)}
+            disabled={!completeRepairData.completedBy || completeRepairMutation.isPending}
+          >
+            {completeRepairMutation.isPending ? 'Completing...' : 'Complete Repair'}
           </Button>
         </DialogActions>
       </Dialog>

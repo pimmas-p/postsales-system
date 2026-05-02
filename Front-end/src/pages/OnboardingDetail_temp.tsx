@@ -12,16 +12,20 @@ import {
   Alert,
   Stack,
   Divider,
+  Chip,
 } from '@mui/material';
 import { 
   ArrowBack, 
   CheckCircle,
   Person,
+  Description,
+  CloudDownload,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { onboardingApi } from '../services/onboardingApi';
 import { StatusChip } from '../components/StatusChip';
 import { RegisterMemberDialog } from '../components/RegisterMemberDialog';
+import { UploadDocumentsDialog } from '../components/UploadDocumentsDialog';
 import { CompleteOnboardingDialog } from '../components/CompleteOnboardingDialog';
 import { format } from 'date-fns';
 
@@ -29,7 +33,9 @@ export const OnboardingDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [registerDialogOpen, setRegisterDialogOpen] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
 
   const { data: onboardingCase, isLoading, error, refetch } = useQuery({
     queryKey: ['onboarding', 'case', id],
@@ -53,9 +59,23 @@ export const OnboardingDetail: React.FC = () => {
     );
   }
 
+  const isDataFetched = !!onboardingCase.contract_document_url; // Step 1 complete indicator
   const isRegistered = onboardingCase.registration_status === 'completed';
+  const isDocumentsUploaded = onboardingCase.document_status === 'uploaded' || onboardingCase.document_status === 'verified';
   const isPaymentVerified = onboardingCase.payment_status === 'paid';
   const isCompleted = onboardingCase.overall_status === 'completed';
+
+  const handleFetchData = async () => {
+    try {
+      setIsFetching(true);
+      await onboardingApi.fetchContractFromLegal(id!);
+      await refetch();
+    } catch (err) {
+      console.error('Failed to fetch external data:', err);
+    } finally {
+      setIsFetching(false);
+    }
+  };
 
   return (
     <Box>
@@ -146,14 +166,104 @@ export const OnboardingDetail: React.FC = () => {
 
         {/* Right Column - Process Steps */}
         <Grid item xs={12} md={8}>
-          {/* Step 1: Member Registration */}
+          {/* Step 1: Data Fetching */}
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
+              <Stack direction="row" alignItems="center" spacing={2}>
+                <CloudDownload color={isDataFetched ? 'success' : 'action'} />
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Step 1: Data Fetching
+                  </Typography>
+                  <Chip 
+                    label={isDataFetched ? 'Fetched' : 'Pending'} 
+                    color={isDataFetched ? 'success' : 'default'}
+                    size="small"
+                  />
+                </Box>
+              </Stack>
+              {!isDataFetched && !isCompleted && (
+                <Button 
+                  variant="contained"
+                  size="medium"
+                  onClick={handleFetchData}
+                  disabled={isFetching}
+                  startIcon={isFetching ? <CircularProgress size={16} /> : <CloudDownload />}
+                >
+                  {isFetching ? 'Fetching...' : 'Fetch External Data'}
+                </Button>
+              )}
+            </Stack>
+
+            {isDataFetched && (
+              <Alert severity="success" sx={{ mt: 2 }}>
+                ✅ External data (Contract, Warranty, Payment History) successfully fetched from Legal and Payment teams
+              </Alert>
+            )}
+
+            {!isDataFetched && (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                📥 Click "Fetch External Data" to retrieve contract, warranty, and payment history from external teams
+              </Alert>
+            )}
+          </Paper>
+
+          {/* Step 2: Document Upload */}
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
+              <Stack direction="row" alignItems="center" spacing={2}>
+                <Description color={isDocumentsUploaded ? 'success' : 'action'} />
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Step 2: Document Upload
+                  </Typography>
+                  <StatusChip status={onboardingCase.document_status} />
+                </Box>
+              </Stack>
+              {!isDocumentsUploaded && !isCompleted && (
+                <Button 
+                  variant="outlined"
+                  size="medium"
+                  onClick={() => setUploadDialogOpen(true)}
+                  disabled={!isDataFetched}
+                >
+                  Upload Documents
+                </Button>
+              )}
+            </Stack>
+
+            {isDocumentsUploaded && (
+              <Box sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
+                <Typography variant="caption" color="text.secondary">Uploaded At</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {onboardingCase.documents_uploaded_at 
+                    ? format(new Date(onboardingCase.documents_uploaded_at), 'dd/MM/yyyy HH:mm')
+                    : '-'}
+                </Typography>
+              </Box>
+            )}
+
+            {!isDataFetched && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                🔒 Please fetch external data first
+              </Alert>
+            )}
+
+            {isDataFetched && !isDocumentsUploaded && (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                📄 Please upload required documents to proceed
+              </Alert>
+            )}
+          </Paper>
+
+          {/* Step 3: Member Registration */}
           <Paper sx={{ p: 3, mb: 3 }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
               <Stack direction="row" alignItems="center" spacing={2}>
                 <Person color={isRegistered ? 'success' : 'action'} />
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Step 1: Member Registration
+                    Step 3: Member Registration
                   </Typography>
                   <StatusChip status={onboardingCase.registration_status} />
                 </Box>
@@ -163,6 +273,7 @@ export const OnboardingDetail: React.FC = () => {
                   variant="outlined"
                   size="medium"
                   onClick={() => setRegisterDialogOpen(true)}
+                  disabled={!isDocumentsUploaded}
                 >
                   Register Member
                 </Button>
@@ -202,87 +313,15 @@ export const OnboardingDetail: React.FC = () => {
               </Box>
             )}
 
-            {!isRegistered && (
+            {!isDocumentsUploaded && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                🔒 Please upload documents first
+              </Alert>
+            )}
+
+            {isDocumentsUploaded && !isRegistered && (
               <Alert severity="info" sx={{ mt: 2 }}>
-                Please register member information to proceed
+                Please register member information to proceed. This will send an event to Payment Team to generate invoice.
               </Alert>
             )}
           </Paper>
-
-          {/* Step 2: Payment Verification & Activation */}
-          <Paper sx={{ p: 3 }}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
-              <Stack direction="row" alignItems="center" spacing={2}>
-                <CheckCircle color={isCompleted ? 'success' : 'action'} />
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Step 2: Payment Verification & Activation
-                  </Typography>
-                  <StatusChip status={onboardingCase.payment_status} />
-                </Box>
-              </Stack>
-              {isRegistered && isPaymentVerified && !isCompleted && (
-                <Button 
-                  variant="outlined"
-                  color="success"
-                  size="medium"
-                  onClick={() => setCompleteDialogOpen(true)}
-                >
-                  Activate Profile
-                </Button>
-              )}
-            </Stack>
-
-            {isCompleted && (
-              <Alert severity="success" sx={{ mt: 2 }}>
-                ✅ Profile activated successfully on{' '}
-                {format(new Date(onboardingCase.completed_at!), 'dd/MM/yyyy HH:mm')}
-              </Alert>
-            )}
-
-            {!isRegistered && (
-              <Alert severity="info" sx={{ mt: 2 }}>
-                Complete Step 1 (Member Registration) first
-              </Alert>
-            )}
-
-            {isRegistered && !isPaymentVerified && (
-              <Alert severity="info" sx={{ mt: 2 }}>
-                ⏳ Waiting for payment verification from Payment Team via Kafka...
-              </Alert>
-            )}
-
-            {isRegistered && isPaymentVerified && !isCompleted && (
-              <Alert severity="success" sx={{ mt: 2 }}>
-                ✅ Payment verified! Ready to activate profile.
-              </Alert>
-            )}
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* Register Member Dialog */}
-      <RegisterMemberDialog
-        open={registerDialogOpen}
-        onClose={() => setRegisterDialogOpen(false)}
-        caseId={onboardingCase.id}
-        unitId={onboardingCase.unit_id}
-        onSuccess={() => {
-          setRegisterDialogOpen(false);
-          refetch();
-        }}
-      />
-
-      {/* Complete Onboarding Dialog */}
-      <CompleteOnboardingDialog
-        open={completeDialogOpen}
-        onClose={() => setCompleteDialogOpen(false)}
-        caseId={onboardingCase.id}
-        onSuccess={() => {
-          setCompleteDialogOpen(false);
-          refetch();
-        }}
-      />
-    </Box>
-  );
-};

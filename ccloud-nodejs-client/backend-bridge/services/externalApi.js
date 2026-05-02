@@ -7,7 +7,7 @@ const axios = require('axios');
 
 // Base URLs for external team services
 // These URLs point to other team's microservices
-const INVENTORY_BASE_URL = process.env.INVENTORY_SERVICE_URL || 'https://inventory-service.onrender.com';
+const INVENTORY_BASE_URL = process.env.INVENTORY_SERVICE_URL || 'https://inventory-catalog-service.onrender.com';
 const LEGAL_CONTRACT_BASE_URL = process.env.LEGAL_CONTRACT_SERVICE_URL || 'https://contract-service-h5fs.onrender.com';
 const LEGAL_WARRANTY_BASE_URL = process.env.LEGAL_WARRANTY_SERVICE_URL || 'https://warranty-service-gtv0.onrender.com';
 const LEGAL_ACQUISITION_BASE_URL = process.env.LEGAL_ACQUISITION_SERVICE_URL || 'https://acquisition-service.onrender.com';
@@ -23,10 +23,13 @@ console.log('  - Payment:', PAYMENT_BASE_URL);
 // Create axios instances with timeouts
 const inventoryClient = axios.create({
   baseURL: INVENTORY_BASE_URL,
-  timeout: 10000, // 10 seconds
+  timeout: 30000, // 30 seconds (increased for slow external services)
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  },
+  // Add retry logic
+  validateStatus: (status) => status < 500, // Don't throw on 4xx errors
 });
 
 const legalContractClient = axios.create({
@@ -89,26 +92,59 @@ addErrorInterceptor(paymentClient, 'Payment');
 // ==========================================
 
 /**
- * Get property history from Inventory team
- * Used for defect assessment to see previous issues/changes
+ * Get property details from Inventory team
+ * Used for defect assessment to see property information
  * @param {string} propertyId - Property/Unit ID
- * @returns {Promise<Object>} Property history with events
+ * @returns {Promise<Object>} Property details with status, area, etc.
  */
 async function getPropertyHistory(propertyId) {
-  try {
-    console.log(`📞 Calling Inventory API: GET /api/v1/properties/${propertyId}/history`);
-    
-    const response = await inventoryClient.get(`/api/v1/properties/${propertyId}/history`);
-    
-    console.log(`✅ Property history retrieved for: ${propertyId}`);
-    return response.data;
-    
-  } catch (error) {
-    console.error(`❌ Failed to get property history for ${propertyId}:`, error.message);
-    
-    // Return null instead of throwing to allow graceful degradation
-    return null;
+  let attempt = 0;
+  const maxAttempts = 2;
+  
+  while (attempt < maxAttempts) {
+    attempt++;
+    try {
+      const url = `/api/v1/properties/${propertyId}`;
+      console.log(`📞 [Attempt ${attempt}/${maxAttempts}] Calling Inventory API: ${INVENTORY_BASE_URL}${url}`);
+      
+      const response = await inventoryClient.get(url);
+      
+      // Check if response is successful
+      if (response.status >= 200 && response.status < 300) {
+        console.log(`✅ Property details retrieved for: ${propertyId}`);
+        console.log(`   Response status: ${response.status}`);
+        console.log(`   Response keys:`, Object.keys(response.data || {}).join(', '));
+        
+        return response.data;
+      } else {
+        console.warn(`⚠️  Unexpected status ${response.status} for property ${propertyId}`);
+        if (attempt < maxAttempts) {
+          console.log(`   Retrying in 2 seconds...`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          continue;
+        }
+        return null;
+      }
+      
+    } catch (error) {
+      console.error(`❌ [Attempt ${attempt}/${maxAttempts}] Failed to get property details for ${propertyId}`);
+      console.error(`   Error message: ${error.message}`);
+      console.error(`   Error code: ${error.code || 'N/A'}`);
+      console.error(`   Status: ${error.response?.status || 'N/A'}`);
+      
+      // Retry on network errors or timeouts
+      if (attempt < maxAttempts && (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT' || !error.response)) {
+        console.log(`   Retrying in 2 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        continue;
+      }
+      
+      // Return null on final attempt
+      return null;
+    }
   }
+  
+  return null;
 }
 
 /**
@@ -341,6 +377,16 @@ async function getPaymentDetails(customerId, unitId = null) {
   }
 }
 
+/**
+ * Get payment history (invoices) for customer
+ * Alias for getPaymentDetails for better naming in Onboarding context
+ * @param {string} customerId - Customer ID
+ * @returns {Promise<Object>} Payment invoices and history
+ */
+async function getPaymentHistory(customerId) {
+  return getPaymentDetails(customerId);
+}
+
 // ==========================================
 // HELPER FUNCTIONS
 // ==========================================
@@ -425,6 +471,7 @@ module.exports = {
   
   // Payment APIs
   getPaymentDetails,
+  getPaymentHistory,
   
   // Utilities
   checkExternalServicesHealth

@@ -227,100 +227,6 @@ async function publishOnboardingCompleted(completionData) {
 }
 
 /**
- * Publish defect reported event
- */
-async function publishDefectReported(defectData) {
-  try {
-    if (!producer) {
-      console.warn('⚠️  Kafka producer not initialized, skipping event publish');
-      return null;
-    }
-
-    const topic = 'postsales.defect.reported';
-    
-    const event = {
-      eventId: require('uuid').v4(),
-      eventType: 'postsales.defect.reported',
-      timestamp: defectData.timestamp || new Date().toISOString(),
-      data: {
-        defectId: defectData.defectId,
-        defectNumber: defectData.defectNumber,
-        unitId: defectData.unitId,
-        title: defectData.title,
-        category: defectData.category,
-        priority: defectData.priority,
-        reportedBy: defectData.reportedBy
-      },
-      metadata: {
-        source: 'postsales-backend-bridge',
-        version: '1.0'
-      }
-    };
-
-    await producer.send({
-      topic,
-      messages: [{ key: defectData.unitId, value: JSON.stringify(event) }]
-    });
-
-    console.log(`✅ Published: ${topic} - Defect #${defectData.defectNumber}`);
-    
-  } catch (error) {
-    console.error('❌ Failed to publish Kafka event:', {
-      topic: 'postsales.defect.reported',
-      defectNumber: defectData.defectNumber,
-      error: error.message
-    });
-    return null;
-  }
-}
-
-/**
- * Publish defect scheduled for repair event
- */
-async function publishDefectScheduled(scheduleData) {
-  try {
-    if (!producer) {
-      console.warn('⚠️  Kafka producer not initialized, skipping event publish');
-      return null;
-    }
-
-    const topic = 'postsales.defect.scheduled';
-    
-    const event = {
-      eventId: require('uuid').v4(),
-      eventType: 'postsales.defect.scheduled',
-      timestamp: scheduleData.timestamp || new Date().toISOString(),
-      data: {
-        defectId: scheduleData.defectId,
-        defectNumber: scheduleData.defectNumber,
-        unitId: scheduleData.unitId,
-        assignedTo: scheduleData.assignedTo,
-        scheduledDate: scheduleData.scheduledDate
-      },
-      metadata: {
-        source: 'postsales-backend-bridge',
-        version: '1.0'
-      }
-    };
-
-    await producer.send({
-      topic,
-      messages: [{ key: scheduleData.unitId, value: JSON.stringify(event) }]
-    });
-
-    console.log(`✅ Published: ${topic} - Defect #${scheduleData.defectNumber} → ${scheduleData.assignedTo} on ${scheduleData.scheduledDate}`);
-    
-  } catch (error) {
-    console.error('❌ Failed to publish Kafka event:', {
-      topic: 'postsales.defect.scheduled',
-      defectNumber: scheduleData.defectNumber,
-      error: error.message
-    });
-    return null;
-  }
-}
-
-/**
  * Publish defect case closed event
  * This is the final status when repair is completed
  */
@@ -368,8 +274,7 @@ async function publishDefectClosed(closeData) {
 
 /**
  * Publish warranty defect reported event
- * Sends defect to Legal Warranty Service for coverage check
- * Per TEAM_INTEGRATION.md Section 8.2
+ * Legal team will process and respond with warranty.coverage.verified-topic
  */
 async function publishWarrantyDefectReported(defectData) {
   try {
@@ -378,27 +283,24 @@ async function publishWarrantyDefectReported(defectData) {
       return null;
     }
 
-    const topic = 'postsales.warranty.defect.reported';
+    const topic = 'warranty.defect.reported';
     
     const event = {
       eventId: require('uuid').v4(),
-      eventType: 'postsales.warranty.defect.reported',
+      eventType: 'warranty.defect.reported',
       timestamp: new Date().toISOString(),
       data: {
         defectId: defectData.id,
-        defectNumber: defectData.defect_number,
-        contractId: defectData.contract_id,
+        contractId: defectData.contract_id || null,
         unitId: defectData.unit_id,
-        customerId: defectData.customer_id,
+        customerId: defectData.customer_id || null,
         defectCategory: defectData.category,
         description: defectData.description,
-        reportedAt: defectData.created_at,
-        priority: defectData.priority
+        reportedAt: defectData.reported_at
       },
       metadata: {
         source: 'postsales-backend-bridge',
-        version: '1.0',
-        requestType: 'warranty_coverage_check'
+        version: '1.0'
       }
     };
 
@@ -407,19 +309,15 @@ async function publishWarrantyDefectReported(defectData) {
       messages: [{ key: defectData.unit_id, value: JSON.stringify(event) }]
     });
 
-    console.log(`✅ Published: ${topic} - Defect #${defectData.defect_number}`);
-    console.log(`   🏥 Requesting warranty coverage check from Legal team`);
-    console.log(`   📋 Category: ${defectData.category}, Priority: ${defectData.priority}`);
-    
-    return { success: true, topic, defectId: defectData.id };
+    console.log(`✅ Published: ${topic} - Defect #${defectData.defect_number} reported to Legal`);
     
   } catch (error) {
-    console.error('❌ Failed to publish warranty defect event:', {
-      topic: 'postsales.warranty.defect.reported',
-      defectId: defectData.id,
+    console.error('❌ Failed to publish Kafka event:', {
+      topic: 'warranty.defect.reported',
+      defectNumber: defectData.defect_number,
       error: error.message
     });
-    return { success: false, error: error.message };
+    return null;
   }
 }
 
@@ -439,9 +337,7 @@ module.exports = {
   publishOnboardingStarted,
   publishMemberRegistered,
   publishOnboardingCompleted,
-  publishDefectReported,
-  publishDefectScheduled,
-  publishDefectClosed,  
   publishWarrantyDefectReported,
+  publishDefectClosed,
   disconnectProducer
 };

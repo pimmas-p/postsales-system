@@ -5,6 +5,7 @@ import type {
   DefectStats,
   ReportDefectRequest,
   ScheduleRepairRequest,
+  CompleteRepairRequest,
   CloseDefectRequest
 } from '../types/defect.types';
 
@@ -41,6 +42,12 @@ export const defectApi = {
   // Schedule repair for defect
   scheduleRepair: async (id: string, data: ScheduleRepairRequest): Promise<DefectCase> => {
     const response = await apiClient.put(`/api/defects/cases/${id}/schedule`, data);
+    return response.data.data;
+  },
+
+  // Complete repair
+  completeRepair: async (id: string, data: CompleteRepairRequest): Promise<DefectCase> => {
+    const response = await apiClient.put(`/api/defects/cases/${id}/complete-repair`, data);
     return response.data.data;
   },
 

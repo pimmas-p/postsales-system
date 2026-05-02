@@ -4,11 +4,57 @@ const {
   getAllHandoverCases,
   getHandoverCaseById,
   completeHandover,
-  getEventsForCase
+  getEventsForCase,
+  upsertHandoverCase
 } = require('../db/queries');
 const { publishHandoverCompleted } = require('../kafka/producer');
 const externalApi = require('../services/externalApi');
 const onboardingQueries = require('../db/onboardingQueries');
+
+/**
+ * POST /api/handover/cases
+ * Create a new handover case (for testing/simulation)
+ */
+router.post('/cases', async (req, res) => {
+  try {
+    const caseData = {
+      unit_id: req.body.unit_id,
+      customer_id: req.body.customer_id,
+      kyc_status: req.body.kyc_status || null,
+      contract_status: req.body.contract_status || null,
+      payment_status: req.body.payment_status || null,
+      payment_amount: req.body.payment_amount || null,
+      overall_status: req.body.overall_status || 'pending',
+      kyc_received_at: req.body.kyc_received_at || null,
+      contract_received_at: req.body.contract_received_at || null,
+      payment_received_at: req.body.payment_received_at || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    // Validate required fields
+    if (!caseData.unit_id || !caseData.customer_id) {
+      return res.status(400).json({
+        success: false,
+        error: 'unit_id and customer_id are required'
+      });
+    }
+
+    const createdCase = await upsertHandoverCase(caseData);
+
+    res.status(201).json({
+      success: true,
+      message: 'Handover case created successfully',
+      data: createdCase
+    });
+  } catch (error) {
+    console.error('❌ Error creating handover case:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
 
 /**
  * GET /api/handover/cases

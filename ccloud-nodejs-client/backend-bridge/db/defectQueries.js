@@ -146,7 +146,7 @@ async function createDefect(defectData) {
 /**
  * Schedule repair for defect
  * @param {string} id - Defect UUID
- * @param {Object} scheduleData - Schedule data (assignedTo, scheduledDate, repairNotes)
+ * @param {Object} scheduleData - Schedule data (scheduledDate, technicianName, estimatedDuration)
  * @returns {Promise<Object>} Updated defect
  */
 async function scheduleRepair(id, scheduleData) {
@@ -154,10 +154,9 @@ async function scheduleRepair(id, scheduleData) {
     const { data, error } = await supabase
       .from('defect_cases')
       .update({
-        assigned_to: scheduleData.assignedTo,
         repair_scheduled_date: scheduleData.scheduledDate,
         repair_notes: scheduleData.repairNotes || null,
-        status: 'scheduled',
+        status: 'in_progress',
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
@@ -172,14 +171,55 @@ async function scheduleRepair(id, scheduleData) {
       event_type: 'defect.scheduled',
       event_source: 'postsales',
       payload: {
-        assignedTo: scheduleData.assignedTo,
-        scheduledDate: scheduleData.scheduledDate
+        scheduledDate: scheduleData.scheduledDate,
+        technicianName: scheduleData.technicianName,
+        estimatedDuration: scheduleData.estimatedDuration
       }
     });
 
     return data;
   } catch (error) {
     console.error('Error scheduling repair:', error);
+    throw error;
+  }
+}
+
+/**
+ * Complete repair (mark as resolved)
+ * @param {string} id - Defect UUID
+ * @param {Object} repairData - Repair completion data (completedBy, completionNotes, photoAfterUrl)
+ * @returns {Promise<Object>} Updated defect
+ */
+async function completeRepair(id, repairData) {
+  try {
+    const { data, error } = await supabase
+      .from('defect_cases')
+      .update({
+        status: 'resolved',
+        repair_notes: repairData.completionNotes || null,
+        photo_after_url: repairData.photoAfterUrl || null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Insert event
+    await insertDefectEvent({
+      defect_id: id,
+      event_type: 'repair.completed',
+      event_source: 'postsales',
+      payload: {
+        completedBy: repairData.completedBy,
+        completionNotes: repairData.completionNotes
+      }
+    });
+
+    return data;
+  } catch (error) {
+    console.error('Error completing repair:', error);
     throw error;
   }
 }
@@ -268,7 +308,8 @@ async function getDefectStats() {
     const stats = {
       total: allDefects.length,
       reported: allDefects.filter(d => d.status === 'reported').length,
-      scheduled: allDefects.filter(d => d.status === 'scheduled').length,
+      in_progress: allDefects.filter(d => d.status === 'in_progress').length,
+      resolved: allDefects.filter(d => d.status === 'resolved').length,
       closed: allDefects.filter(d => d.status === 'closed').length,
       critical: allDefects.filter(d => d.priority === 'critical').length,
       high: allDefects.filter(d => d.priority === 'high').length,
@@ -379,6 +420,7 @@ module.exports = {
   generateDefectNumber,
   createDefect,
   scheduleRepair,
+  completeRepair,
   closeDefect,
   insertDefectEvent,
   getDefectStats,

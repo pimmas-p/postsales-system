@@ -114,24 +114,7 @@ async function getOnboardingCaseByUnitId(unitId) {
  */
 async function createOnboardingCase(caseData) {
   try {
-    // Try to fetch contract document from Legal Team API
-    let contractDocUrl = null;
-    try {
-      console.log(`🔍 Fetching contract for unit: ${caseData.unitId}`);
-      const contractData = await externalApi.getContractByUnit(caseData.unitId);
-      
-      if (contractData && contractData.fileUrl) {
-        contractDocUrl = contractData.fileUrl;
-        console.log(`✅ Contract document URL retrieved: ${contractDocUrl}`);
-      } else {
-        console.log(`⚠️  No contract document URL available for unit: ${caseData.unitId}`);
-      }
-    } catch (apiError) {
-      console.warn(`⚠️  Failed to fetch contract from Legal API:`, apiError.message);
-      // Continue without contract - user can upload manually later
-    }
-
-    // Create onboarding case with auto-filled contract (if available)
+    // Create onboarding case (no auto-fetch - Payment-only integration)
     const { data, error } = await supabase
       .from('onboarding_cases')
       .insert({
@@ -139,8 +122,8 @@ async function createOnboardingCase(caseData) {
         unit_id: caseData.unitId,
         customer_id: caseData.customerId,
         area_size: caseData.areaSize,
-        contract_document_url: contractDocUrl, // Auto-filled from Legal API
-        document_status: contractDocUrl ? 'uploaded' : 'pending', // Set to 'uploaded' if contract fetched
+        contract_document_url: null, // No auto-fetch from Legal
+        document_status: 'pending',
         overall_status: 'pending',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -150,12 +133,7 @@ async function createOnboardingCase(caseData) {
 
     if (error) throw error;
 
-    // Log success message
-    if (contractDocUrl) {
-      console.log(`✨ Onboarding case created with auto-filled contract document`);
-    } else {
-      console.log(`📝 Onboarding case created (contract document pending)`);
-    }
+    console.log(`✨ Onboarding case created (Payment-only integration)`);
 
     // Insert event
     await insertOnboardingEvent({
@@ -448,62 +426,95 @@ async function getOnboardingStats() {
 }
 
 /**
- * Manually fetch contract from Legal API
- * @param {string} id - Case UUID
- * @returns {Promise<Object>} Updated case with contract
+ * DEPRECATED: Function removed - Onboarding Service no longer fetches external data
+ * Onboarding now uses Payment Team events only (no Legal API integration)
+ * 
+ * Original purpose: Fetch contract, warranty, and payment data from External APIs
+ * Current flow: 
+ *   - Step 1: Register member → Publish postsales.member.registered
+ *   - Step 2: Wait for payment.invoice.commonfees.completed → Activate profile
  */
 async function manualFetchContractFromLegal(id) {
+  console.warn('⚠️  manualFetchContractFromLegal() is DEPRECATED - No external data fetching in Payment-only integration');
+  
+  // Return case without external data fetch
+  const onboardingCase = await getOnboardingCaseById(id);
+  
+  if (!onboardingCase) {
+    throw new Error('Onboarding case not found');
+  }
+
+  console.log(`ℹ️  Onboarding Service uses Payment Team events only - no external API calls`);
+  
+  return onboardingCase;
+}
+
+/**
+ * Update payment status from Payment Team event
+ * Step 4 Gatekeeper: payment.invoice.commonfees.completed
+ * @param {string} unitId - Unit ID
+ * @param {Object} paymentData - Payment event data
+ * @returns {Promise<Object>} Updated case
+ */
+async function updatePaymentStatus(unitId, paymentData) {
   try {
-    // Get onboarding case
-    const onboardingCase = await getOnboardingCaseById(id);
+    console.log(`💳 [Step 4 Gatekeeper] Updating payment status for unit: ${unitId}`);
+
+    // Find onboarding case by unitId
+    const { data: cases, error: findError } = await supabase
+      .from('onboarding_cases')
+      .select('*')
+      .eq('unit_id', unitId)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (findError) throw findError;
     
-    if (!onboardingCase) {
-      throw new Error('Onboarding case not found');
+    if (!cases || cases.length === 0) {
+      console.warn(`⚠️  No onboarding case found for unit ${unitId}`);
+      return null;
     }
 
-    console.log(`🔍 Manual contract fetch for unit: ${onboardingCase.unit_id}`);
+    const onboardingCase = cases[0];
 
-    // Try to fetch contract from Legal API
-    const contractData = await externalApi.getContractByUnit(onboardingCase.unit_id);
-    
-    if (!contractData || !contractData.fileUrl) {
-      throw new Error('No contract found from Legal API');
-    }
-
-    console.log(`✅ Contract found: ${contractData.fileUrl}`);
-
-    // Update contract document
+    // Update payment status
     const { data, error } = await supabase
       .from('onboarding_cases')
       .update({
-        contract_document_url: contractData.fileUrl,
-        document_status: 'uploaded',
-        documents_uploaded_at: new Date().toISOString(),
+        payment_status: 'paid',
+        payment_verified_at: new Date().toISOString(),
+        payment_amount: paymentData.amount,
+        payment_reference_id: paymentData.paymentId || paymentData.invoiceId,
         updated_at: new Date().toISOString()
       })
-      .eq('id', id)
+      .eq('id', onboardingCase.id)
       .select()
       .single();
 
     if (error) throw error;
 
-    // Insert event
+    // Insert event for audit trail
     await insertOnboardingEvent({
-      case_id: id,
-      event_type: 'onboarding.contract_manual_fetched',
-      event_source: 'postsales-manual',
-      payload: { 
-        contractId: contractData.contractId,
-        fileUrl: contractData.fileUrl,
-        source: 'manual-fetch'
+      case_id: onboardingCase.id,
+      event_type: 'onboarding.payment_verified',
+      event_source: 'payment-team',
+      payload: {
+        paymentId: paymentData.paymentId,
+        amount: paymentData.amount,
+        status: paymentData.status,
+        paidAt: paymentData.paidAt,
+        verifiedAt: new Date().toISOString()
       }
     });
 
-    console.log(`✨ Contract manually fetched and saved`);
+    console.log(`✅ Payment verified for case ${onboardingCase.id}`);
+    console.log(`   Amount: ${paymentData.amount} ${paymentData.currency || 'THB'}`);
+    console.log(`   Reference: ${paymentData.paymentId || paymentData.invoiceId}`);
+
     return data;
 
   } catch (error) {
-    console.error(`Error manually fetching contract:`, error);
+    console.error(`Error updating payment status:`, error);
     throw error;
   }
 }
@@ -516,6 +527,7 @@ module.exports = {
   updateMemberRegistration,
   updateDocuments,
   updateContractDocumentAuto,
+  updatePaymentStatus,
   manualFetchContractFromLegal,
   completeOnboarding,
   insertOnboardingEvent,

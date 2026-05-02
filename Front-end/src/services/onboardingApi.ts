@@ -50,20 +50,6 @@ export const onboardingApi = {
     return response.data.data;
   },
 
-  // Upload documents
-  uploadDocuments: async (id: string, data: {
-    contractDocumentUrl: string;
-  }): Promise<OnboardingCase> => {
-    const response = await apiClient.put(`/api/onboarding/cases/${id}/documents`, data);
-    return response.data.data;
-  },
-
-  // Manually fetch contract from Legal API
-  fetchContractFromLegal: async (id: string): Promise<OnboardingCase> => {
-    const response = await apiClient.post(`/api/onboarding/cases/${id}/fetch-contract`);
-    return response.data.data;
-  },
-
   // Complete onboarding
   completeOnboarding: async (id: string, data: {
     completedBy: string;

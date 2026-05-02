@@ -48,7 +48,8 @@ export type DefectPriority = 'low' | 'medium' | 'high' | 'critical';
 
 export type DefectStatus = 
   | 'reported' 
-  | 'scheduled' 
+  | 'in_progress'
+  | 'resolved'
   | 'closed';
 
 export interface DefectEvent {
@@ -67,7 +68,8 @@ export interface DefectCaseWithEvents extends DefectCase {
 export interface DefectStats {
   total: number;
   reported: number;
-  scheduled: number;
+  in_progress: number;
+  resolved: number;
   closed: number;
   critical: number;
   high: number;
@@ -86,9 +88,16 @@ export interface ReportDefectRequest {
 }
 
 export interface ScheduleRepairRequest {
-  assignedTo: string;
   scheduledDate: string;
+  technicianName?: string;
+  estimatedDuration?: string;
   repairNotes?: string;
+}
+
+export interface CompleteRepairRequest {
+  completedBy: string;
+  completionNotes?: string;
+  photoAfterUrl?: string; // Base64 or URL
 }
 
 export interface CloseDefectRequest {
@@ -117,6 +126,7 @@ export const DEFECT_PRIORITIES: Record<DefectPriority, string> = {
 
 export const DEFECT_STATUSES: Record<DefectStatus, string> = {
   reported: 'Reported',
-  scheduled: 'Scheduled',
+  in_progress: 'In Progress',
+  resolved: 'Resolved',
   closed: 'Closed'
 };

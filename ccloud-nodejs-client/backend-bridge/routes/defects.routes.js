@@ -186,44 +186,26 @@ router.post('/cases', async (req, res) => {
       reportedBy
     });
 
-    // Optional: Get property history from Inventory for context
+    // Publish warranty.defect.reported event to Legal team
+    // Legal will verify coverage and respond with warranty.coverage.verified-topic
+    try {
+      await producer.publishWarrantyDefectReported(newDefect);
+      console.log(`📤 Warranty verification request sent for defect ${newDefect.defect_number}`);
+    } catch (eventError) {
+      console.warn('⚠️  Failed to publish warranty event (continuing):', eventError.message);
+      // Continue - defect is created, warranty verification can be retried
+    }
+
+    // Optional: Get property details from Inventory for context
     try {
       const propertyHistory = await externalApi.getPropertyHistory(unitId);
       if (propertyHistory && process.env.NODE_ENV === 'development') {
-        console.log(`✅ Property history retrieved for unit ${unitId}`);
-        // Future: Use history to assess if defect is recurring
+        console.log(`✅ Property details retrieved for unit ${unitId}`);
+        // Future: Use property info to assess defect context
       }
     } catch (historyError) {
-      console.warn('Could not retrieve property history:', historyError.message);
-      // Continue without history - not critical
-    }
-
-    // Request warranty coverage check from Legal team
-    // This publishes event for Legal to verify if defect is covered
-    try {
-      const warrantyResult = await producer.publishWarrantyDefectReported(newDefect);
-      if (warrantyResult?.success && process.env.NODE_ENV === 'development') {
-        console.log(`✅ Warranty check requested for defect ${newDefect.defect_number}`);
-      }
-    } catch (warrantyError) {
-      console.warn('Failed to request warranty check:', warrantyError.message);
-      // Continue without warranty check - will be handled manually
-    }
-
-    // Publish general defect.reported event
-    try {
-      await producer.publishDefectReported({
-        defectId: newDefect.id,
-        defectNumber: newDefect.defect_number,
-        unitId: newDefect.unit_id,
-        title: newDefect.title,
-        category: newDefect.category,
-        priority: newDefect.priority,
-        reportedBy: newDefect.reported_by,
-        timestamp: new Date().toISOString()
-      });
-    } catch (kafkaError) {
-      console.warn('Failed to publish defect.reported event:', kafkaError.message);
+      console.warn('Could not retrieve property details:', historyError.message);
+      // Continue without property info - not critical
     }
 
     res.status(201).json({
@@ -259,16 +241,18 @@ router.post('/cases', async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - assignedTo
  *               - scheduledDate
  *             properties:
- *               assignedTo:
- *                 type: string
- *                 description: Contractor name
  *               scheduledDate:
  *                 type: string
  *                 format: date-time
  *                 description: Scheduled repair date
+ *               technicianName:
+ *                 type: string
+ *                 description: Name of technician
+ *               estimatedDuration:
+ *                 type: string
+ *                 description: Estimated repair duration
  *               repairNotes:
  *                 type: string
  *                 description: Notes about the repair
@@ -283,35 +267,22 @@ router.post('/cases', async (req, res) => {
 router.put('/cases/:id/schedule', async (req, res) => {
   try {
     const { id } = req.params;
-    const { assignedTo, scheduledDate, repairNotes } = req.body;
+    const { scheduledDate, technicianName, estimatedDuration, repairNotes } = req.body;
 
     // Validation
-    if (!assignedTo || !scheduledDate) {
+    if (!scheduledDate) {
       return res.status(400).json({
         success: false,
-        error: 'assignedTo and scheduledDate are required'
+        error: 'scheduledDate is required'
       });
     }
 
     const updatedDefect = await defectQueries.scheduleRepair(id, {
-      assignedTo,
       scheduledDate,
+      technicianName,
+      estimatedDuration,
       repairNotes
     });
-
-    // Publish Kafka event
-    try {
-      await producer.publishDefectScheduled({
-        defectId: updatedDefect.id,
-        defectNumber: updatedDefect.defect_number,
-        unitId: updatedDefect.unit_id,
-        assignedTo: updatedDefect.assigned_to,
-        scheduledDate: updatedDefect.repair_scheduled_date,
-        timestamp: new Date().toISOString()
-      });
-    } catch (kafkaError) {
-      console.warn('Failed to publish defect.scheduled event:', kafkaError.message);
-    }
 
     res.json({
       success: true,
@@ -319,6 +290,77 @@ router.put('/cases/:id/schedule', async (req, res) => {
     });
   } catch (error) {
     console.error('Error scheduling repair:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/defects/cases/{id}/complete-repair:
+ *   put:
+ *     summary: Complete repair (mark as resolved)
+ *     tags: [Defects]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - completedBy
+ *             properties:
+ *               completedBy:
+ *                 type: string
+ *                 description: Name of person who completed repair
+ *               completionNotes:
+ *                 type: string
+ *                 description: Notes about repair completion
+ *               photoAfterUrl:
+ *                 type: string
+ *                 description: URL of photo after repair
+ *     responses:
+ *       200:
+ *         description: Repair completed successfully
+ *       400:
+ *         description: Invalid input
+ *       500:
+ *         description: Server error
+ */
+router.put('/cases/:id/complete-repair', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { completedBy, completionNotes, photoAfterUrl } = req.body;
+
+    // Validation
+    if (!completedBy) {
+      return res.status(400).json({
+        success: false,
+        error: 'completedBy is required'
+      });
+    }
+
+    const updatedDefect = await defectQueries.completeRepair(id, {
+      completedBy,
+      completionNotes,
+      photoAfterUrl
+    });
+
+    res.json({
+      success: true,
+      data: updatedDefect
+    });
+  } catch (error) {
+    console.error('Error completing repair:', error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -484,7 +526,7 @@ router.get('/stats', async (req, res) => {
  *         description: Defect case ID
  *     responses:
  *       200:
- *         description: Warranty coverage details
+ *         description: Warranty coverage details from database (updated by Legal team events)
  *       404:
  *         description: Defect not found
  *       500:
@@ -494,7 +536,7 @@ router.get('/:id/warranty', async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Get defect details to extract contract_id
+    // Get defect with warranty information
     const defect = await defectQueries.getDefectById(id);
     
     if (!defect) {
@@ -504,19 +546,20 @@ router.get('/:id/warranty', async (req, res) => {
       });
     }
     
-    // Call Legal Warranty Service
-    const warrantyData = await externalApi.getWarrantyCoverage(defect.contract_id);
-    
-    if (!warrantyData) {
-      return res.status(503).json({
-        success: false,
-        error: 'Unable to fetch warranty information from Legal Warranty Service'
-      });
-    }
+    // Return warranty information from database
+    // This data is updated by Legal team via warranty.coverage.verified-topic event
+    const warrantyInfo = {
+      warranty_id: defect.warranty_id,
+      is_covered: defect.warranty_coverage_status === 'covered',
+      coverage_status: defect.warranty_coverage_status, // covered, rejected, partial, null
+      coverage_reason: defect.warranty_coverage_reason,
+      verified_at: defect.warranty_verified_at,
+      pending_verification: !defect.warranty_coverage_status // null means still waiting for Legal response
+    };
     
     res.json({
       success: true,
-      data: warrantyData
+      data: warrantyInfo
     });
   } catch (error) {
     console.error('Error fetching warranty for defect:', error);
@@ -531,7 +574,7 @@ router.get('/:id/warranty', async (req, res) => {
  * @swagger
  * /api/defects/{id}/unit-history:
  *   get:
- *     summary: Get unit/property history for defect
+ *     summary: Get unit/property details for defect
  *     tags: [Defects]
  *     parameters:
  *       - in: path
@@ -542,7 +585,7 @@ router.get('/:id/warranty', async (req, res) => {
  *         description: Defect case ID
  *     responses:
  *       200:
- *         description: Property history from Inventory Service
+ *         description: Property details from Inventory Service
  *       404:
  *         description: Defect not found
  *       500:
@@ -562,13 +605,16 @@ router.get('/:id/unit-history', async (req, res) => {
       });
     }
     
-    // Call Inventory Service
+    // Call Inventory Service for property details
     const historyData = await externalApi.getPropertyHistory(defect.unit_id);
     
+    // Return data even if Inventory Service is unavailable (graceful degradation)
     if (!historyData) {
-      return res.status(503).json({
-        success: false,
-        error: 'Unable to fetch property history from Inventory Service'
+      console.warn(`⚠️  Inventory Service unavailable for unit: ${defect.unit_id}`);
+      return res.json({
+        success: true,
+        data: null,
+        message: 'Property details temporarily unavailable'
       });
     }
     

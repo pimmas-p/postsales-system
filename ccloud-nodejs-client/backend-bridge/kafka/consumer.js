@@ -1,7 +1,7 @@
 const { Kafka } = require('@confluentinc/kafka-javascript').KafkaJS;
 const { readKafkaConfig } = require('./config');
+const util = require('util');
 const { 
-  handleKycEvent, 
   handleContractEvent, 
   handlePaymentEvent,
   handleCommonFeesEvent,
@@ -14,11 +14,10 @@ let lastMessageTimestamp = null;
 
 // Track messages received per topic
 const topicStats = {
-  'managing.kyc.complete': { count: 0, lastReceived: null },
-  'purchase.contract.drafted': { count: 0, lastReceived: null },
+  'contract.drafted': { count: 0, lastReceived: null },
   'payment.secondpayment.completed': { count: 0, lastReceived: null },
   'payment.invoice.commonfees.completed': { count: 0, lastReceived: null },
-  'warranty.coverage.verified-topic': { count: 0, lastReceived: null }
+  'warranty.coverage.verified': { count: 0, lastReceived: null }
 };
 
 /**
@@ -64,17 +63,15 @@ async function startConsumer() {
   console.log('✅ Kafka consumer connected!');
 
   // Subscribe to topics (ตามตาราง integration)
-  // - managing.kyc.complete: Managing team - KYC completion
-  // - purchase.contract.drafted: Legal team - Purchase contract drafted
+  // - contract.drafted: Legal team - Contract drafted
   // - payment.secondpayment.completed: Payment team - Second payment
   // - payment.invoice.commonfees.completed: Payment team - Common fees
-  // - warranty.coverage.verified-topic: Legal team - Warranty verification
+  // - warranty.coverage.verified: Legal team - Warranty verification
   const topics = [
-    'managing.kyc.complete',
-    'purchase.contract.drafted',
+    'contract.drafted',
     'payment.secondpayment.completed',
     'payment.invoice.commonfees.completed',
-    'warranty.coverage.verified-topic'
+    'warranty.coverage.verified'
   ];
 
   await consumer.subscribe({ topics });
@@ -100,16 +97,13 @@ async function startConsumer() {
         console.log(`   Offset: ${message.offset}`);
         console.log(`   Timestamp: ${new Date(parseInt(message.timestamp)).toISOString()}`);
         console.log(`\n📦 Event Payload:`);
-        console.log(JSON.stringify(event, null, 2));
+        console.log(util.inspect(event, { depth: null, colors: true }));
 
         console.log(`\n⚙️  Processing event...`);
 
         // Route to appropriate handler
         switch (topic) {
-          case 'managing.kyc.complete':
-            await handleKycEvent(event);
-            break;
-          case 'purchase.contract.drafted':
+          case 'contract.drafted':
             await handleContractEvent(event);
             break;
           case 'payment.secondpayment.completed':
@@ -118,7 +112,7 @@ async function startConsumer() {
           case 'payment.invoice.commonfees.completed':
             await handleCommonFeesEvent(event);
             break;
-          case 'warranty.coverage.verified-topic':
+          case 'warranty.coverage.verified':
             await handleWarrantyVerifiedEvent(event);
             break;
           default:

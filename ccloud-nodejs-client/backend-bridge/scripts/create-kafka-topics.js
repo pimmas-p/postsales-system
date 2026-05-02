@@ -44,13 +44,14 @@ const REQUIRED_TOPICS = [
     description: '📤 Post-Sales → Legal Team: Defect warranty verification request',
     numPartitions: 1,
     replicationFactor: 3
-  },
-  {
-    topic: 'postsales.caseclosed.completed',
-    description: '📤 Post-Sales → Marketing: Defect case closed events',
-    numPartitions: 1,
-    replicationFactor: 3
   }
+  // DEPRECATED: postsales.caseclosed.completed - Marketing now uses REST API
+  // {
+  //   topic: 'postsales.caseclosed.completed',
+  //   description: '📤 Post-Sales → Marketing: Defect case closed events (DEPRECATED - Use REST API)',
+  //   numPartitions: 1,
+  //   replicationFactor: 3
+  // }
 ];
 
 async function createTopics() {

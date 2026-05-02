@@ -3,7 +3,7 @@
 -- ============================================
 
 -- Table: handover_cases
--- Tracks unit handover readiness (aggregates KYC, Contract, Payment statuses)
+-- Tracks unit handover readiness (2 conditions: Contract + Payment)
 CREATE TABLE IF NOT EXISTS handover_cases (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   
@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS handover_cases (
   customer_id VARCHAR(100) NOT NULL,
   
   -- Status from External Teams (via Kafka events)
-  kyc_status VARCHAR(50), -- NULL (pending), 'approved', 'rejected'
   contract_status VARCHAR(50), -- NULL (pending), 'drafted', 'rejected'
   contract_id VARCHAR(100), -- Contract ID from Legal team
   payment_status VARCHAR(50), -- NULL (pending), 'completed', 'failed'
@@ -38,8 +37,8 @@ CREATE TABLE IF NOT EXISTS handover_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   case_id UUID REFERENCES handover_cases(id) ON DELETE CASCADE,
   
-  event_type VARCHAR(100) NOT NULL, -- managing.kyc.completed, purchase.contract.drafted, payment.secondpayment.completed
-  event_source VARCHAR(100) NOT NULL, -- managing, legal, payment, postsales
+  event_type VARCHAR(100) NOT NULL, -- contract.drafted, payment.secondpayment.completed
+  event_source VARCHAR(100) NOT NULL, -- legal, payment, postsales
   
   payload JSONB NOT NULL, -- Full event data
   

@@ -189,23 +189,23 @@ async function getEventsForCase(caseId) {
   return data;
 }
 
-// Calculate overall status based on event statuses
-function calculateOverallStatus(kycStatus, contractStatus, paymentStatus) {
-  if (!kycStatus && !contractStatus && !paymentStatus) {
+// Calculate overall status based on event statuses (2 conditions: Contract + Payment)
+function calculateOverallStatus(contractStatus, paymentStatus) {
+  if (!contractStatus && !paymentStatus) {
     return 'pending';
   }
 
-  const allApproved = 
-    kycStatus === 'approved' &&
+  // Both conditions must be met for handover to be ready
+  const bothCompleted = 
     contractStatus === 'drafted' &&
     paymentStatus === 'completed';
 
-  if (allApproved) {
+  if (bothCompleted) {
     return 'ready';
   }
 
   // Check for any blocked status
-  if (kycStatus === 'rejected' || contractStatus === 'rejected' || paymentStatus === 'failed') {
+  if (contractStatus === 'rejected' || paymentStatus === 'failed') {
     return 'blocked';
   }
 

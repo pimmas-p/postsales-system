@@ -21,17 +21,15 @@
 ## 1. Handover Service
 
 ### 🎯 วัตถุประสงค์
-จัดการการส่งมอบห้อง (Handover) ให้เจ้าของ โดยติดตาม 3 เงื่อนไขหลัก:
-1. ✅ KYC verified (จาก Managing Team)
-2. ✅ Contract drafted (จาก Legal Team)
-3. ✅ Second payment completed (จาก Payment Team)
+จัดการการส่งมอบห้อง (Handover) ให้เจ้าของ โดยติดตาม 2 เงื่อนไขหลัก:
+1. ✅ Contract drafted (จาก Legal Team)
+2. ✅ Second payment completed (จาก Payment Team)
 
 ### 📥 ข้อมูลที่ใช้จากทีมอื่น (Subscribe Events)
 
 | Topic | Producer Team | ข้อมูลที่ได้รับ | การใช้งาน |
 |-------|---------------|----------------|-----------|
-| `managing.kyc.complete` | Managing (Team 4) | KYC status, customerId, unitId | อัพเดท kyc_status ใน handover_cases |
-| `purchase.contract.drafted` | Legal (Team 5) | contractId, unitId, status, fileUrl | อัพเดท contract_status ใน handover_cases |
+| `contract.drafted` | Legal (Team 5) | contractId, unitId, status, fileUrl | อัพเดท contract_status ใน handover_cases |
 | `payment.secondpayment.completed` | Payment (Team 6) | paymentId, propertyId (=unitId), amount, status, paidAt | อัพเดท payment_status → status mapping: **CONFIRMED → completed** |
 
 > **⚠️ สำคัญ:** Payment Team ส่ง `status: "CONFIRMED"` แต่เราแปลงเป็น `"completed"` ก่อนบันทึกเพื่อให้ตรงกับ business logic
@@ -74,27 +72,11 @@
 │                    HANDOVER SERVICE WORKFLOW                     │
 └─────────────────────────────────────────────────────────────────┘
 
-Phase 1: รอข้อมูลจาก 3 ทีม (Kafka Consumer)
+Phase 1: รอข้อมูลจาก 2 ทีม (Kafka Consumer)
 ═══════════════════════════════════════════════════════════════════
 
     ┌──────────────┐
-    │ Managing Team│ ──→ managing.kyc.complete
-    └──────────────┘         │
-                             ↓
-                    [eventHandlers.js]
-                    handleKycEvent()
-                             │
-                             ↓
-                    UPDATE handover_cases
-                    SET kyc_status = 'approved'
-                             │
-                             ↓
-                    ┌─────────────────┐
-                    │ kyc_status: ✅  │
-                    └─────────────────┘
-
-    ┌──────────────┐
-    │  Legal Team  │ ──→ purchase.contract.drafted
+    │  Legal Team  │ ──→ contract.drafted
     └──────────────┘         │
                              ↓
                     [eventHandlers.js]
@@ -137,8 +119,7 @@ Phase 2: ตรวจสอบเงื่อนไข (Auto Calculation)
     [calculateOverallStatus()] ใน queries.js
          │
          ↓
-    IF (kyc_status = 'approved' AND 
-        contract_status = 'drafted' AND 
+    IF (contract_status = 'drafted' AND 
         payment_status = 'completed')
     THEN
         overall_status = 'ready'
@@ -431,18 +412,66 @@ POST /api/defects/cases
     │
     └─→ 📤 Publish: warranty.defect.reported (→ Legal Team)
          │
+         │  **Event Schema:**
+         │  {
+         │    "eventId": "uuid-v4",
+         │    "eventType": "warranty.defect.reported",
+         │    "timestamp": "2026-05-02T14:00:00.000Z",
+         │    "data": {
+         │      "defectId": "550e8400-e29b-41d4-a716-446655440000",
+         │      "contractId": "CONTRACT-001" or null,
+         │      "unitId": "A-101",
+         │      "customerId": "CUST-12345" or null,
+         │      "defectCategory": "cosmetic",
+         │      "description": "รอยแตกฝ้าเพดาน",
+         │      "reportedAt": "2026-05-02T14:00:00.000Z"
+         │    },
+         │    "metadata": {
+         │      "source": "postsales-backend-bridge",
+         │      "version": "1.0"
+         │    }
+         │  }
          ↓
-    ┌─────────────────────────────────────┐
-    │  Legal Team ตรวจสอบ Warranty        │
-    │  ส่งกลับมาทาง Kafka:                │
-    │  warranty.coverage.verified-topic   │
-    └─────────────────────────────────────┘
+    ┌─────────────────────────────────────────────────────────────┐
+    │  Legal Team ตรวจสอบ Warranty Coverage                      │
+    │  • ดึงข้อมูล contract และ warranty terms                   │
+    │  • ตรวจสอบว่าข้อบกพร่องอยู่ในขอบเขต warranty หรือไม่        │
+    │  • ตรวจสอบระยะเวลา warranty ยังไม่หมดอายุ                  │
+    │                                                             │
+    │  ส่งกลับมาทาง Kafka (RESPONSE):                            │
+    │  Topic: warranty.coverage.verified                         │
+    │                                                             │
+    │  Response Schema (camelCase - Team 5 format):               │
+    │  {                                                          │
+    │    "claimId": "<UUID>",                                    │
+    │    "warrantyId": "<UUID>",                                 │
+    │    "defectId": "<UUID>",                                   │
+    │    "contractId": "<UUID>",                                 │
+    │    "unitId": "<UUID>",                                     │
+    │    "customerId": "<UUID>",                                 │
+    │    "coverageStatus": "COVERED|REJECTED",                   │
+    │    "coverageReason": "อยู่ในขอบเขต warranty โครงสร้าง 5 ปี", │
+    │    "verifiedAt": "2026-05-03T10:30:00.000Z",              │
+    │    "expiresAt": "2028-12-31T23:59:59.000Z"                │
+    │  }                                                          │
+    └─────────────────────────────────────────────────────────────┘
          │
          ↓
     [Backend Consumer] handleWarrantyVerifiedEvent()
     UPDATE defect_cases
-    SET warranty_coverage_status = 'verified',
-        is_covered = true/false
+    SET warranty_coverage_status = coverageStatus,
+        warranty_id = warrantyId,
+        claim_id = claimId,
+        coverage_reason = coverageReason,
+        verified_at = verifiedAt,
+        expires_at = expiresAt
+
+    **Key Points:**
+    • Legal Team เป็นผู้ตรวจสอบ warranty coverage
+    • Post-Sales รอรับ verification result ก่อนดำเนินการต่อ
+    • ถ้า coverageStatus = REJECTED, ต้องเก็บค่าใช้จ่ายจากลูกบ้าน
+    • ทุกข้อบกพร่องต้องผ่าน warranty check ก่อน
+    • Schema ใช้ camelCase ตาม Team 5 format
 
 ─────────────────────────────────────────────────────────────────
 
@@ -512,7 +541,20 @@ PUT /api/defects/cases/:id/close
 
 | Topic | Producer Team | ข้อมูลที่ได้รับ | การใช้งาน |
 |-------|---------------|----------------|-----------|
-| `warranty.coverage.verified-topic` | Legal (Team 5) | Warranty coverage result | อัพเดท warranty_coverage_status, is_covered ใน defect_cases |
+| `warranty.coverage.verified` | Legal (Team 5) | `{claimId, warrantyId, defectId, contractId, unitId, customerId, coverageStatus: "COVERED\|REJECTED", coverageReason, verifiedAt, expiresAt}` | อัพเดท warranty_coverage_status, warranty_id, claim_id ใน defect_cases |
+
+**Response Event Schema (camelCase - Team 5):**
+```json
+{
+  "claimId": "<UUID>",
+  "warrantyId": "<UUID>", 
+  "defectId": "<UUID>",
+  "coverageStatus": "COVERED|REJECTED",
+  "coverageReason": "string",
+  "verifiedAt": "<ISO8601>",
+  "expiresAt": "<ISO8601>"
+}
+```
 
 ### 🔌 REST API Endpoints
 
@@ -531,22 +573,65 @@ PUT /api/defects/cases/:id/close
 
 #### 1. `warranty.defect.reported` ⭐ **สำคัญ**
 **ส่งให้:** Legal Team (Team 5) - ตรวจสอบ Warranty Coverage  
-**เมื่อไร:** เมื่อแจ้งข้อบกพร่องใหม่  
-**Payload:**
+**เมื่อไร:** เมื่อแจ้งข้อบกพร่องใหม่ (POST /api/defects/cases)  
+**Workflow:**
+1. Post-Sales รับรายงานข้อบกพร่องจากลูกบ้าน
+2. Publish `warranty.defect.reported` ไปยัง Legal Team
+3. Legal Team ตรวจสอบ warranty coverage และส่งกลับมา
+4. Post-Sales รับ `warranty.coverage.verified` และอัพเดทสถานะ
+
+**Request Payload (Post-Sales → Legal):**
 ```json
 {
-  "defectId": 1,
-  "unitId": "UNIT-001",
-  "contractId": "CONTRACT-001",
-  "defectType": "cosmetic",
-  "reportedDate": "2026-05-02T14:00:00Z",
-  "description": "รอยแตกฝ้าเพดาน"
+  "eventId": "550e8400-e29b-41d4-a716-446655440000",
+  "eventType": "warranty.defect.reported",
+  "timestamp": "2026-05-02T14:00:00.000Z",
+  "data": {
+    "defectId": "<UUID>",
+    "contractId": "<UUID>",
+    "unitId": "<UUID>",
+    "customerId": "<UUID>",
+    "defectCategory": "STRUCTURAL|ELECTRICAL|PLUMBING|FINISHING|APPLIANCE|OTHER",
+    "description": "รอยแตกฝ้าเพดาน",
+    "reportedAt": "2026-05-02T14:00:00.000Z"
+  },
+  "metadata": {
+    "source": "postsales-backend-bridge",
+    "version": "1.0"
+  }
 }
 ```
 
-#### 2. `postsales.caseclosed.completed`
-**ส่งให้:** Marketing Team (Quality Tracking)  
-**เมื่อไร:** เมื่อปิดเคสสำเร็จ  
+**Response Event (Legal → Post-Sales):**  
+**Topic:** `warranty.coverage.verified` ⚠️ **ต่างจาก request topic**
+
+```json
+{
+  "claimId": "<UUID>",
+  "warrantyId": "<UUID>",
+  "defectId": "<UUID>",
+  "contractId": "<UUID>",
+  "unitId": "<UUID>",
+  "customerId": "<UUID>",
+  "coverageStatus": "COVERED|REJECTED",
+  "coverageReason": "อยู่ในขอบเขต warranty โครงสร้าง 5 ปี",
+  "verifiedAt": "2026-05-03T10:30:00.000Z",
+  "expiresAt": "2028-12-31T23:59:59.000Z"
+}
+```
+
+**Field Descriptions:**
+- `coverageStatus`: `COVERED` = อยู่ในประกัน, `REJECTED` = นอกประกัน
+- `coverageReason`: เหตุผลจาก Legal Team
+- `verifiedAt`: เวลาที่ Legal ตรวจสอบเสร็จ
+- `expiresAt`: วันหมดอายุ warranty (ถ้า COVERED)
+
+#### 2. ~`postsales.caseclosed.completed`~ ❌ **DEPRECATED**
+**สถานะ:** Deprecated - ใช้ REST API แทน  
+**ส่งให้:** ~~Marketing Team (Quality Tracking)~~  
+**เปลี่ยนเป็น:** Marketing Team เรียก REST API `GET /api/defects/closed-cases`  
+**เหตุผล:** Pull model ง่ายกว่า push model สำหรับการดึงข้อมูลเป็นระยะ  
+**เอกสาร:** ดูที่ `docs/MARKETING_API_INTEGRATION.md`  
 
 ---
 
@@ -556,8 +641,8 @@ PUT /api/defects/cases/:id/close
 
 | External Team | ที่เรา Subscribe | ที่เรา Publish | REST API Calls |
 |---------------|------------------|----------------|----------------|
-| **Managing Team (4)** | `managing.kyc.complete` | - | - |
-| **Legal Team (5)** | `purchase.contract.drafted`<br>`warranty.coverage.verified-topic` | `warranty.defect.reported` | ✅ Defect Service only:<br>GET Property Warranty |
+| **Legal Team (5)** | `contract.drafted`<br>`warranty.coverage.verified` | `warranty.defect.reported` | ✅ Defect Service only:<br>GET Property Warranty |
+| **Marketing Team (6)** | - | - | ✅ **REST API**:<br>GET /api/defects/closed-cases |
 | **Payment Team (6)** | `payment.secondpayment.completed`<br>`payment.invoice.commonfees.completed` | `postsales.member.registered` | - |
 | **Inventory Team** | - | - | ✅ Defect Service:<br>GET Property Details |
 
@@ -565,7 +650,7 @@ PUT /api/defects/cases/:id/close
 
 #### Service 1: Handover Service
 **External Dependencies:**
-- 📥 Subscribe: `managing.kyc.complete`, `purchase.contract.drafted`, `payment.secondpayment.completed`
+- 📥 Subscribe: `contract.drafted`, `payment.secondpayment.completed`
 - 📤 Publish: `postsales.handover.completed`
 - 🔌 REST API: None
 
@@ -588,9 +673,10 @@ PUT /api/defects/cases/:id/close
 
 #### Service 3: Defect Management Service
 **External Dependencies:**
-- 📥 Subscribe: `warranty.coverage.verified-topic`
-- 📤 Publish: `warranty.defect.reported`, `postsales.caseclosed.completed`
-- 🔌 REST API: **Inventory Service** - GET Property Details, **Legal Service** - GET Warranty Info
+- 📥 Subscribe: `warranty.coverage.verified`
+- 📤 Publish: `warranty.defect.reported`
+- 🌐 REST API Provides: `GET /api/defects/closed-cases` (for Marketing Team)
+- 🔌 REST API Calls: **Inventory Service** - GET Property Details, **Legal Service** - GET Warranty Info
 
 ### 📊 Payment Team Integration Details
 
@@ -614,7 +700,7 @@ PUT /api/defects/cases/:id/close
 
 ## 5. Kafka Events Summary
 
-### 📤 Events ที่เรา Publish (6 Events)
+### 📤 Events ที่เรา Publish (5 Events)
 
 | # | Topic | Target Team | Purpose |
 |---|-------|-------------|---------|
@@ -622,25 +708,40 @@ PUT /api/defects/cases/:id/close
 | 2 | `postsales.onboarding.started` | Internal | เริ่มกระบวนการ Onboarding |
 | 3 | `postsales.member.registered` | Payment Team | ตั้งค่า Account Receivable |
 | 4 | `postsales.profile.activated` | CRM/Marketing | ลูกบ้านพร้อมใช้งาน |
-| 5 | `warranty.defect.reported` | Legal Team | ตรวจสอบ Warranty Coverage |
-| 6 | `postsales.caseclosed.completed` | Marketing | เคสข้อบกพร่องปิดแล้ว |
+| 5 | `warranty.defect.reported` | Legal Team | **ส่ง request** ตรวจสอบ Warranty Coverage |
 
-### 📥 Events ที่เรา Subscribe (5 Events)
+**Note:** ~`postsales.caseclosed.completed`~ (Deprecated) - Marketing Team ใช้ REST API `GET /api/defects/closed-cases` แทน
 
-| # | Topic | Producer | Purpose |
-|---|-------|----------|---------|
-| 1 | `managing.kyc.complete` | Managing Team | Update Handover KYC status |
-| 2 | `purchase.contract.drafted` | Legal Team | Update Handover contract status |
-| 3 | `payment.secondpayment.completed` | Payment Team | Update Handover payment (CONFIRMED → completed) |
-| 4 | `payment.invoice.commonfees.completed` | Payment Team | Update Onboarding payment (PAID → paid) - Gatekeeper |
-| 5 | `warranty.coverage.verified-topic` | Legal Team | Update Defect warranty status |
+### 📥 Events ที่เรา Subscribe (4 Events)
+
+| # | Topic | Producer | Purpose | Workflow |
+|---|-------|----------|---------|----------|
+| 1 | `contract.drafted` | Legal Team | Update Handover contract status | Handover Phase 1 |
+| 2 | `payment.secondpayment.completed` | Payment Team | Update Handover payment (CONFIRMED → completed) | Handover Phase 1 |
+| 3 | `payment.invoice.commonfees.completed` | Payment Team | Update Onboarding payment (PAID → paid) - Gatekeeper | Onboarding Step 2 |
+| 4 | `warranty.coverage.verified` | Legal Team | **รับ response** Warranty verification result | Defect State 1 → Update warranty status |
+
+### 🔄 Warranty 2-Way Communication Flow
+
+```
+Post-Sales → warranty.defect.reported → Legal Team
+             (ขอตรวจสอบ warranty)
+             
+Legal Team → warranty.coverage.verified → Post-Sales
+             (ส่งผลการตรวจสอบกลับมา)
+```
+
+**Key Points:**
+- `warranty.defect.reported` = **Request** (เราส่งไป)
+- `warranty.coverage.verified` = **Response** (เรารับกลับมา)
+- เป็น 2-way communication ผ่าน Kafka topics คนละ topic
 
 ---
 
 ## 📝 Implementation Notes
 
 ### ✅ Completed Features
-- ✅ Handover 3-condition flow with Payment status mapping
+- ✅ Handover **2-condition** flow with Payment status mapping
 - ✅ Onboarding **2-step** workflow with Payment gatekeeper (Kafka events only - no REST API calls)
 - ✅ Defect Management 4-state flow with event-driven warranty
 - ✅ Kafka event standardization (6 publish + 5 subscribe)

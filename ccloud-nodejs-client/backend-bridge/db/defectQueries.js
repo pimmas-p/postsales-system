@@ -294,6 +294,80 @@ async function insertDefectEvent(eventData) {
 }
 
 /**
+ * Get closed defect cases (for Marketing Team REST API)
+ * @param {Object} filters - Filter options (from, to, limit, offset)
+ * @returns {Promise<Array>} Array of closed defect cases
+ */
+async function getClosedDefects(filters = {}) {
+  try {
+    let query = supabase
+      .from('defect_cases')
+      .select('id, defect_number, unit_id, title, category, priority, closed_at, closed_by, closing_notes, photo_after_url, warranty_id, warranty_coverage_status, warranty_coverage_reason, warranty_verified_at')
+      .eq('status', 'closed')
+      .order('closed_at', { ascending: false });
+
+    // Apply date filters
+    if (filters.from) {
+      query = query.gte('closed_at', filters.from);
+    }
+    if (filters.to) {
+      // Add one day to include the entire 'to' date
+      const toDate = new Date(filters.to);
+      toDate.setDate(toDate.getDate() + 1);
+      query = query.lt('closed_at', toDate.toISOString());
+    }
+
+    // Apply pagination
+    if (filters.limit) {
+      query = query.limit(filters.limit);
+    }
+    if (filters.offset) {
+      query = query.range(filters.offset, filters.offset + (filters.limit || 100) - 1);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching closed defects:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get count of closed defect cases (for Marketing Team REST API)
+ * @param {Object} filters - Filter options (from, to)
+ * @returns {Promise<number>} Count of closed defects
+ */
+async function getClosedDefectsCount(filters = {}) {
+  try {
+    let query = supabase
+      .from('defect_cases')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'closed');
+
+    // Apply date filters
+    if (filters.from) {
+      query = query.gte('closed_at', filters.from);
+    }
+    if (filters.to) {
+      const toDate = new Date(filters.to);
+      toDate.setDate(toDate.getDate() + 1);
+      query = query.lt('closed_at', toDate.toISOString());
+    }
+
+    const { count, error } = await query;
+
+    if (error) throw error;
+    return count || 0;
+  } catch (error) {
+    console.error('Error counting closed defects:', error);
+    throw error;
+  }
+}
+
+/**
  * Get defect statistics
  * @returns {Promise<Object>} Statistics object
  */
@@ -337,11 +411,16 @@ async function updateDefectWarrantyStatus(defectId, warrantyData) {
     console.log(`   Warranty Coverage: ${warrantyData.coverageStatus}`);
     console.log(`   Reason: ${warrantyData.coverageReason}`);
     
+    // Normalize coverage status to lowercase for consistency
+    const normalizedCoverageStatus = warrantyData.coverageStatus 
+      ? warrantyData.coverageStatus.toLowerCase() 
+      : null;
+    
     const { data, error } = await supabase
       .from('defect_cases')
       .update({
         warranty_id: warrantyData.warrantyId,
-        warranty_coverage_status: warrantyData.coverageStatus,
+        warranty_coverage_status: normalizedCoverageStatus,
         warranty_coverage_reason: warrantyData.coverageReason,
         warranty_verified_at: warrantyData.verifiedAt || new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -358,12 +437,12 @@ async function updateDefectWarrantyStatus(defectId, warrantyData) {
       event_type: 'warranty.verified',
       event_source: 'legal',
       payload: {
-        coverageStatus: warrantyData.coverageStatus,
+        coverageStatus: normalizedCoverageStatus,
         coverageReason: warrantyData.coverageReason
       }
     });
     
-    console.log(`   ✅ Warranty status updated successfully`);
+    console.log(`   ✅ Warranty status updated successfully (status: ${normalizedCoverageStatus})`);
     return data;
     
   } catch (error) {
@@ -424,6 +503,8 @@ module.exports = {
   closeDefect,
   insertDefectEvent,
   getDefectStats,
+  getClosedDefects,
+  getClosedDefectsCount,
   updateDefectWarrantyStatus,
   storeWarrantyCoverage
 };

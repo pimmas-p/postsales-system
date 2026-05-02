@@ -15,68 +15,13 @@ const {
   updatePaymentStatus
 } = require('../db/onboardingQueries');
 
+const util = require('util');
 const externalApi = require('./externalApi');
 
 /**
- * Handle KYC completed event
- * Managing team (Team 4) - No official documentation, using fallback support
- * Topic: managing.kyc.completed
- */
-async function handleKycEvent(event) {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('   📋 Processing KYC event...');
-  }
-  
-  // ⚠️ No official documentation - Support both camelCase and snake_case as fallback
-  const unitId = event.unitId || event.unit_id;
-  const customerId = event.customerId || event.customer_id;
-  const kycStatus = event.kycStatus || event.kyc_status || event.status;
-  const timestamp = event.timestamp || event.received_at;
-
-  // Get existing case or create new one
-  let existingCase = await getHandoverCaseByUnitId(unitId);
-
-  const caseData = {
-    unit_id: unitId,
-    customer_id: customerId,
-    kyc_status: kycStatus,
-    kyc_received_at: timestamp || new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
-
-  // Calculate overall status
-  if (existingCase) {
-    caseData.overall_status = calculateOverallStatus(
-      kycStatus,
-      existingCase.contract_status,
-      existingCase.payment_status
-    );
-  } else {
-    caseData.overall_status = 'pending';
-    caseData.created_at = new Date().toISOString();
-  }
-
-  // Upsert case
-  const updatedCase = await upsertHandoverCase(caseData);
-
-  // Store event for audit trail
-  await insertHandoverEvent({
-    case_id: updatedCase.id,
-    event_type: 'managing.kyc.completed',
-    event_source: 'managing',
-    payload: event
-  });
-
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`   ✅ KYC event processed for unit: ${unitId}`);
-    console.log(`   📊 Overall status: ${updatedCase.overall_status}`);
-  }
-}
-
-/**
- * Handle Purchase Contract drafted event
- * Legal team (Team 5) - Purchase contract drafted (sale completed)
- * Topic: purchase.contract.drafted
+ * Handle Contract drafted event
+ * Legal team (Team 5) - Contract drafted
+ * Topic: contract.drafted
  * 
  * Expected Schema (camelCase per Legal CSV documentation):
  * {
@@ -92,9 +37,7 @@ async function handleKycEvent(event) {
  * }
  */
 async function handleContractEvent(event) {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('   📋 Processing Contract event...');
-  }
+  console.log('   📋 Processing Contract event...');
   
   // ✅ Team 5 format - camelCase ONLY
   const contractId = event.contractId;
@@ -118,7 +61,6 @@ async function handleContractEvent(event) {
 
   if (existingCase) {
     caseData.overall_status = calculateOverallStatus(
-      existingCase.kyc_status,
       contractStatus,
       existingCase.payment_status
     );
@@ -131,14 +73,12 @@ async function handleContractEvent(event) {
 
   await insertHandoverEvent({
     case_id: updatedCase.id,
-    event_type: 'purchase.contract.drafted',
+    event_type: 'contract.drafted',
     event_source: 'legal',
     payload: event
   });
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`   ✅ Contract event processed for unit: ${unitId}`);
-  }
+  console.log(`   ✅ Contract event processed for unit: ${unitId}`);
 }
 
 /**
@@ -147,12 +87,16 @@ async function handleContractEvent(event) {
  * Team 6 CSV format - camelCase ONLY
  */
 async function handlePaymentEvent(event) {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('   📋 Processing Payment event...');
-  }
+  console.log('\n📋 PAYMENT EVENT RECEIVED');
+  console.log('='.repeat(80));
+  console.log('\n📦 Raw Event (Wrapper Format):');
+  console.log(util.inspect(event, { depth: null, colors: true }));
   
   // ✅ Unwrap Payment team's wrapper format
   const eventData = event.success ? event.data : event;
+  
+  console.log('\n📦 Event Data (Unwrapped):');
+  console.log(util.inspect(eventData, { depth: null, colors: true }));
   
   // ✅ Team 6 format - camelCase ONLY (as per Team 6 CSV documentation)
   // Note: Payment team uses "propertyId" which maps to our internal "unitId"
@@ -161,6 +105,20 @@ async function handlePaymentEvent(event) {
   const paymentAmount = eventData.amount;
   const paymentStatus = eventData.status;
   const timestamp = event.timestamp || eventData.updatedAt;
+  
+  console.log('\n🔑 Payment Event Fields:');
+  console.log(`   - Payment ID:    ${eventData.paymentId || 'N/A'}`);
+  console.log(`   - Property ID:   ${eventData.propertyId}`);
+  console.log(`   - Customer ID:   ${eventData.customerId}`);
+  console.log(`   - Type:          ${eventData.type || 'N/A'}`);
+  console.log(`   - Amount:        ${eventData.amount}`);
+  console.log(`   - Status:        ${eventData.status}`);
+  console.log(`   - Approved By:   ${eventData.approvedBy || 'N/A'}`);
+  console.log(`   - Approved At:   ${eventData.approvedAt || 'N/A'}`);
+  console.log(`   - Created At:    ${eventData.createdAt || 'N/A'}`);
+  console.log(`   - Updated At:    ${eventData.updatedAt || 'N/A'}`);
+  console.log(`   - Wrapper Time:  ${event.timestamp || 'N/A'}`);
+  console.log('='.repeat(80));
 
   // Map Payment Team status to internal status
   // Payment sends "CONFIRMED", we use "completed" internally
@@ -179,7 +137,6 @@ async function handlePaymentEvent(event) {
 
   if (existingCase) {
     caseData.overall_status = calculateOverallStatus(
-      existingCase.kyc_status,
       existingCase.contract_status,
       internalPaymentStatus
     );
@@ -197,12 +154,10 @@ async function handlePaymentEvent(event) {
     payload: event
   });
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`   ✅ Payment event processed for unit: ${unitId}`);
-    console.log(`   💰 Amount: ${paymentAmount}`);
-    console.log(`   � Payment status: ${paymentStatus} → ${internalPaymentStatus}`);
-    console.log(`   �📊 Overall status: ${updatedCase.overall_status}`);
-  }
+  console.log(`   ✅ Payment event processed for unit: ${unitId}`);
+  console.log(`   💰 Amount: ${paymentAmount}`);
+  console.log(`   📄 Payment status: ${paymentStatus} → ${internalPaymentStatus}`);
+  console.log(`   📊 Overall status: ${updatedCase.overall_status}`);
 }
 
 /**
@@ -268,24 +223,27 @@ async function handleCommonFeesEvent(event) {
 /**
  * Handle Warranty Coverage Verified event from Legal team
  * Update defect case with warranty verification result
- * Topic: warranty.coverage.verified-topic (Legal team)
+ * Topic: warranty.coverage.verified (Legal team)
  */
 async function handleWarrantyVerifiedEvent(event) {
   if (process.env.NODE_ENV === 'development') {
     console.log('   📋 Processing Warranty Verification event...');
   }
   
+  // ✅ Unwrap event data (event may have wrapper with data property)
+  const eventData = event.data || event;
+  
   // ✅ Team 5 format - camelCase ONLY
-  const claimId = event.claimId;
-  const warrantyId = event.warrantyId;
-  const defectId = event.defectId;
-  const contractId = event.contractId;
-  const unitId = event.unitId;
-  const customerId = event.customerId;
-  const coverageStatus = event.coverageStatus;
-  const coverageReason = event.coverageReason;
-  const verifiedAt = event.verifiedAt;
-  const expiresAt = event.expiresAt;
+  const claimId = eventData.claimId;
+  const warrantyId = eventData.warrantyId;
+  const defectId = eventData.defectId;
+  const contractId = eventData.contractId;
+  const unitId = eventData.unitId;
+  const customerId = eventData.customerId;
+  const coverageStatus = eventData.coverageStatus;
+  const coverageReason = eventData.coverageReason;
+  const verifiedAt = eventData.verifiedAt;
+  const expiresAt = eventData.expiresAt;
   
   if (!defectId) {
     console.warn('   ⚠️  No defectId in warranty verification event, skipping');
@@ -311,7 +269,6 @@ async function handleWarrantyVerifiedEvent(event) {
 }
 
 module.exports = {
-  handleKycEvent,
   handleContractEvent,
   handlePaymentEvent,
   handleCommonFeesEvent,

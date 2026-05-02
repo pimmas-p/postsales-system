@@ -33,12 +33,10 @@ async function createCompleteHandoverCase() {
     const handoverData = {
       unit_id: unitId,
       customer_id: customerId,
-      kyc_status: 'approved',
       contract_status: 'SIGNED',
       payment_status: 'completed',
       payment_amount: 5000000,
       overall_status: 'ready',
-      kyc_received_at: new Date().toISOString(),
       contract_received_at: new Date().toISOString(),
       payment_received_at: new Date().toISOString()
     };
@@ -52,7 +50,6 @@ async function createCompleteHandoverCase() {
       console.log(`   ID: ${response.data.data.id}`);
       console.log(`   Unit ID: ${response.data.data.unit_id}`);
       console.log(`   Customer ID: ${response.data.data.customer_id}`);
-      console.log(`   KYC Status: ${response.data.data.kyc_status}`);
       console.log(`   Contract Status: ${response.data.data.contract_status}`);
       console.log(`   Payment Status: ${response.data.data.payment_status}`);
       console.log(`   Overall Status: ${response.data.data.overall_status}`);
@@ -86,17 +83,17 @@ async function createPartialHandoverCase() {
   const customerId = `CUST-${timestamp}`;
 
   try {
-    // Create partial case - only KYC completed
+    // Create partial case - only Contract completed
     const handoverData = {
       unit_id: unitId,
       customer_id: customerId,
-      kyc_status: 'approved',
+      contract_status: 'SIGNED',
       overall_status: 'pending',
-      kyc_received_at: new Date().toISOString()
+      contract_received_at: new Date().toISOString()
     };
 
     console.log(`📋 Creating partial case: ${unitId}`);
-    console.log('   Status: Only KYC approved (Contract and Payment pending)\n');
+    console.log('   Status: Only Contract signed (Payment pending)\n');
 
     const response = await axios.post(`${BASE_URL}/api/handover/cases`, handoverData);
 
@@ -134,16 +131,14 @@ async function createBatchHandoverCases(count = 5) {
     const handoverData = {
       unit_id: unitId,
       customer_id: customerId,
-      kyc_status: 'approved',
-      kyc_received_at: new Date().toISOString()
+      contract_status: 'SIGNED',
+      contract_received_at: new Date().toISOString()
     };
 
     if (isComplete) {
-      handoverData.contract_status = 'SIGNED';
       handoverData.payment_status = 'completed';
       handoverData.payment_amount = 5000000 + (Math.random() * 10000000);
       handoverData.overall_status = 'ready';
-      handoverData.contract_received_at = new Date().toISOString();
       handoverData.payment_received_at = new Date().toISOString();
     } else {
       handoverData.overall_status = 'pending';

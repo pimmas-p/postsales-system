@@ -118,7 +118,6 @@ export const HandoverDashboard: React.FC = () => {
             <TableRow>
               <TableCell sx={{ fontWeight: 600 }}>Unit ID</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>Customer ID</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 600 }}>KYC</TableCell>
               <TableCell align="center" sx={{ fontWeight: 600 }}>Contract</TableCell>
               <TableCell align="center" sx={{ fontWeight: 600 }}>Payment</TableCell>
               <TableCell align="center" sx={{ fontWeight: 600 }}>Overall Status</TableCell>
@@ -132,9 +131,6 @@ export const HandoverDashboard: React.FC = () => {
                 <TableRow key={handoverCase.id}>
                   <TableCell sx={{ fontWeight: 600 }}>{handoverCase.unit_id}</TableCell>
                   <TableCell>{handoverCase.customer_id}</TableCell>
-                  <TableCell align="center">
-                    <StatusChip status={handoverCase.kyc_status} />
-                  </TableCell>
                   <TableCell align="center">
                     <StatusChip status={handoverCase.contract_status} />
                   </TableCell>

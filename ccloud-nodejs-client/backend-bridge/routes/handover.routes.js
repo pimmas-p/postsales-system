@@ -20,12 +20,10 @@ router.post('/cases', async (req, res) => {
     const caseData = {
       unit_id: req.body.unit_id,
       customer_id: req.body.customer_id,
-      kyc_status: req.body.kyc_status || null,
       contract_status: req.body.contract_status || null,
       payment_status: req.body.payment_status || null,
       payment_amount: req.body.payment_amount || null,
       overall_status: req.body.overall_status || 'pending',
-      kyc_received_at: req.body.kyc_received_at || null,
       contract_received_at: req.body.contract_received_at || null,
       payment_received_at: req.body.payment_received_at || null,
       created_at: new Date().toISOString(),

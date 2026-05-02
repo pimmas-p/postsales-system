@@ -123,6 +123,140 @@ router.get('/cases/:id', async (req, res) => {
 
 /**
  * @swagger
+ * /api/defects/closed-cases:
+ *   get:
+ *     summary: Get closed defect cases (for Marketing Team)
+ *     tags: [Defects]
+ *     description: Retrieve closed defect cases within a date range for marketing analytics
+ *     parameters:
+ *       - in: query
+ *         name: from
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date (YYYY-MM-DD)
+ *         example: "2024-01-01"
+ *       - in: query
+ *         name: to
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date (YYYY-MM-DD)
+ *         example: "2024-12-31"
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 100
+ *         description: Maximum records to return
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Number of records to skip
+ *     responses:
+ *       200:
+ *         description: List of closed defect cases
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       defect_number:
+ *                         type: string
+ *                       unit_id:
+ *                         type: string
+ *                       title:
+ *                         type: string
+ *                       category:
+ *                         type: string
+ *                       priority:
+ *                         type: string
+ *                       closed_at:
+ *                         type: string
+ *                         format: date-time
+ *                       closed_by:
+ *                         type: string
+ *                       closing_notes:
+ *                         type: string
+ *                       photo_after_url:
+ *                         type: string
+ *                       warranty_id:
+ *                         type: string
+ *                       warranty_coverage_status:
+ *                         type: string
+ *                       warranty_coverage_reason:
+ *                         type: string
+ *                       warranty_verified_at:
+ *                         type: string
+ *                         format: date-time
+ *                 total:
+ *                   type: integer
+ *                 count:
+ *                   type: integer
+ *       400:
+ *         description: Invalid date format
+ *       500:
+ *         description: Server error
+ */
+router.get('/closed-cases', async (req, res) => {
+  try {
+    const { from, to, limit = 100, offset = 0 } = req.query;
+
+    // Validate dates if provided
+    if (from && isNaN(Date.parse(from))) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid from date format. Use YYYY-MM-DD'
+      });
+    }
+    if (to && isNaN(Date.parse(to))) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid to date format. Use YYYY-MM-DD'
+      });
+    }
+
+    const filters = {
+      from,
+      to,
+      limit: parseInt(limit) || 100,
+      offset: parseInt(offset) || 0
+    };
+
+    const closedDefects = await defectQueries.getClosedDefects(filters);
+    const totalCount = await defectQueries.getClosedDefectsCount(filters);
+
+    res.json({
+      success: true,
+      data: closedDefects,
+      total: totalCount,
+      count: closedDefects.length,
+      limit: filters.limit,
+      offset: filters.offset
+    });
+  } catch (error) {
+    console.error('Error fetching closed defects:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @swagger
  * /api/defects/cases:
  *   post:
  *     summary: Report new defect
@@ -187,7 +321,7 @@ router.post('/cases', async (req, res) => {
     });
 
     // Publish warranty.defect.reported event to Legal team
-    // Legal will verify coverage and respond with warranty.coverage.verified-topic
+    // Legal will verify coverage and respond with warranty.coverage.verified
     try {
       await producer.publishWarrantyDefectReported(newDefect);
       console.log(`📤 Warranty verification request sent for defect ${newDefect.defect_number}`);
@@ -426,18 +560,9 @@ router.put('/cases/:id/close', async (req, res) => {
       photoAfterUrl
     });
 
-    // Publish Kafka event
-    try {
-      await producer.publishDefectClosed({
-        defectId: updatedDefect.id,
-        defectNumber: updatedDefect.defect_number,
-        unitId: updatedDefect.unit_id,
-        closedBy: updatedDefect.closed_by,
-        timestamp: new Date().toISOString()
-      });
-    } catch (kafkaError) {
-      console.warn('Failed to publish defect.closed event:', kafkaError.message);
-    }
+    // Note: Marketing team now uses REST API instead of Kafka
+    // They will call GET /api/defects/closed-cases to retrieve closed defects
+    console.log(`✅ Defect ${updatedDefect.defect_number} closed. Available via REST API for Marketing team.`);
 
     res.json({
       success: true,
@@ -547,7 +672,7 @@ router.get('/:id/warranty', async (req, res) => {
     }
     
     // Return warranty information from database
-    // This data is updated by Legal team via warranty.coverage.verified-topic event
+    // This data is updated by Legal team via warranty.coverage.verified event
     const warrantyInfo = {
       warranty_id: defect.warranty_id,
       is_covered: defect.warranty_coverage_status === 'covered',

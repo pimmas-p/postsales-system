@@ -29,7 +29,6 @@ async function testConnection() {
       .insert({
         unit_id: testUnitId,
         customer_id: `TEST-CUST-${Date.now()}`,
-        kyc_status: 'pending',
         overall_status: 'pending'
       })
       .select()
@@ -51,8 +50,8 @@ async function testConnection() {
     const { data: updatedCase, error: updateError } = await supabase
       .from('handover_cases')
       .update({ 
-        kyc_status: 'approved',
-        kyc_received_at: new Date().toISOString(),
+        contract_status: 'drafted',
+        contract_received_at: new Date().toISOString(),
         overall_status: 'pending'
       })
       .eq('id', newCase.id)
@@ -62,7 +61,7 @@ async function testConnection() {
     if (updateError) throw updateError;
     
     console.log('✅ Test case updated successfully!');
-    console.log('📝 Updated status:', updatedCase.kyc_status);
+    console.log('📝 Updated status:', updatedCase.contract_status);
     console.log('');
     
     // Test 4: Insert event
@@ -71,12 +70,12 @@ async function testConnection() {
       .from('handover_events')
       .insert({
         case_id: newCase.id,
-        event_type: 'managing.kyc.completed',
-        event_source: 'managing',
+        event_type: 'contract.drafted',
+        event_source: 'legal',
         payload: {
           unitId: newCase.unit_id,
           customerId: newCase.customer_id,
-          kycStatus: 'approved',
+          contractStatus: 'drafted',
           timestamp: new Date().toISOString()
         }
       })

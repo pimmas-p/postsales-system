@@ -104,12 +104,6 @@ export const HandoverDetail: React.FC = () => {
 
   const steps = [
     {
-      label: 'KYC Completed',
-      status: handoverCase.kyc_status,
-      receivedAt: handoverCase.kyc_received_at,
-      source: 'KYC Team',
-    },
-    {
       label: 'Contract Drafted',
       status: handoverCase.contract_status,
       receivedAt: handoverCase.contract_received_at,
@@ -455,7 +449,7 @@ export const HandoverDetail: React.FC = () => {
               )}
               {!isReadyForHandover && !isCompleted && (
                 <Alert severity="info" sx={{ width: '100%' }}>
-                  Waiting for all events (KYC, Contract, Payment) to complete before handover can be marked as ready.
+                  Waiting for all events (Contract, Payment) to complete before handover can be marked as ready.
                 </Alert>
               )}
               {isCompleted && (

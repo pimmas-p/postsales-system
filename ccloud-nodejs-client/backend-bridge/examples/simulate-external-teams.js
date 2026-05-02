@@ -64,29 +64,10 @@ async function simulateCompleteHandoverFlow(producer, unitId, customerId) {
   console.log(`📋 Testing unit: ${unitId}`);
   console.log(`👤 Customer: ${customerId}\n`);
 
-  // Step 1: Managing Team sends KYC completion
-  console.log('1️⃣  Managing Team → KYC Completed');
-  const kycEvent = {
-    eventType: 'managing.kyc.complete',
-    unitId: unitId,
-    customerId: customerId,
-    kycStatus: 'approved',
-    timestamp: new Date().toISOString(),
-    verificationDetails: {
-      idCardVerified: true,
-      addressVerified: true,
-      incomeVerified: true
-    }
-  };
-  
-  await sendEvent(producer, 'managing.kyc.complete', unitId, kycEvent);
-  console.log('   ✅ KYC event sent');
-  await sleep(2000);
-
-  // Step 2: Legal Team sends Contract Drafted
-  console.log('\n2️⃣  Legal Team → Contract Drafted');
+  // Step 1: Legal Team sends Contract Drafted
+  console.log('1️⃣  Legal Team → Contract Drafted');
   const contractEvent = {
-    eventType: 'purchase.contract.drafted',
+    eventType: 'contract.drafted',
     contractId: uuidv4(),
     bookingId: uuidv4(),
     unitId: unitId,
@@ -98,12 +79,18 @@ async function simulateCompleteHandoverFlow(producer, unitId, customerId) {
     draftedAt: new Date().toISOString()
   };
   
-  await sendEvent(producer, 'purchase.contract.drafted', unitId, contractEvent);
+  await sendEvent(producer, 'contract.drafted', unitId, contractEvent);
   console.log('   ✅ Contract event sent');
   await sleep(2000);
 
-  // Step 3: Payment Team sends Second Payment Completed
-  console.log('\n3️⃣  Payment Team → Second Payment Completed');
+  // Step 2: Payment Team sends Second Payment
+  
+  await sendEvent(producer, 'contract.drafted', unitId, contractEvent);
+  console.log('   ✅ Contract event sent');
+  await sleep(2000);
+
+  // Step 2: Payment Team sends Second Payment
+  console.log('\n2️⃣  Payment Team → Second Payment Completed');
   const paymentEvent = {
     success: true,
     data: {
@@ -195,7 +182,7 @@ async function simulateWarrantyVerification(producer, unitId, defectId) {
     }
   };
   
-  await sendEvent(producer, 'warranty.coverage.verified-topic', defectId, warrantyEvent);
+  await sendEvent(producer, 'warranty.coverage.verified', defectId, warrantyEvent);
   console.log('   ✅ Warranty verification event sent');
   console.log('   🔧 Defect warranty status should be updated\n');
 }

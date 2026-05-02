@@ -249,7 +249,11 @@ async function publishOnboardingCompleted(completionData) {
 /**
  * Publish defect case closed event
  * This is the final status when repair is completed
+ * 
+ * DEPRECATED: Marketing Team now uses REST API instead of Kafka
+ * See GET /api/defects/closed-cases endpoint
  */
+/*
 async function publishDefectClosed(closeData) {
   try {
     if (!producer) {
@@ -297,10 +301,11 @@ async function publishDefectClosed(closeData) {
     return null;
   }
 }
+*/
 
 /**
  * Publish warranty defect reported event
- * Legal team will process and respond with warranty.coverage.verified-topic
+ * Legal team will process and respond with warranty.coverage.verified
  */
 async function publishWarrantyDefectReported(defectData) {
   try {
@@ -370,6 +375,6 @@ module.exports = {
   publishMemberRegistered,
   publishOnboardingCompleted,
   publishWarrantyDefectReported,
-  publishDefectClosed,
+  // publishDefectClosed, // DEPRECATED: Marketing uses REST API
   disconnectProducer
 };

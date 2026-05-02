@@ -14,12 +14,7 @@ const { readKafkaConfig } = require('../kafka/config');
 // Topics we need to SUBSCRIBE from other teams
 const SUBSCRIBE_TOPICS = [
   {
-    topic: 'managing.kyc.complete',
-    team: 'Managing Team (Team 4)',
-    description: 'KYC completion events → Handover Service'
-  },
-  {
-    topic: 'purchase.contract.drafted',
+    topic: 'contract.drafted',
     team: 'Legal Team (Team 5)',
     description: 'Contract drafted events → Handover Service'
   },
@@ -34,7 +29,7 @@ const SUBSCRIBE_TOPICS = [
     description: 'Common fees payment → Onboarding Service (GATEKEEPER) ⭐'
   },
   {
-    topic: 'warranty.coverage.verified-topic',
+    topic: 'warranty.coverage.verified',
     team: 'Legal Team (Team 5)',
     description: 'Warranty verification results → Defect Service'
   }

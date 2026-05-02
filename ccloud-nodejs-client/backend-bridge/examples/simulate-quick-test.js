@@ -64,7 +64,7 @@ async function quickTest() {
     // Test 2: Simulate Contract Event
     console.log('\n2️⃣  Simulating: Legal Team → Contract Drafted');
     const contractEvent = {
-      eventType: 'purchase.contract.drafted',
+      eventType: 'contract.drafted',
       eventSource: 'legal-team-simulation',
       contractId: uuidv4(),
       unitId: unitId,
@@ -80,7 +80,7 @@ async function quickTest() {
         key: `contract-${unitId}`,
         value: JSON.stringify(contractEvent),
         headers: {
-          'event-type': 'purchase.contract.drafted',
+          'event-type': 'contract.drafted',
           'source': 'simulation'
         }
       }]

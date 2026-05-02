@@ -317,9 +317,8 @@ Examples used in Post-Sales service:
 - postsales.warranty.activated      → When warranty starts
 
 Events we CONSUME from other services:
-- managing.kyc.complete                          → From Managing service
-- purchase.contract.drafted                      → From Purchase service
+- contract.drafted                               → From Legal service
 - payment.secondpayment.completed                → From Payment service
 - payment.invoice.commonfees.completed           → From Payment service
-- warranty.coverage.verified-topic               → From Warranty service
+- warranty.coverage.verified                     → From Legal service
 */

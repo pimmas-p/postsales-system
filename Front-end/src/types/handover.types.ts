@@ -4,9 +4,6 @@ export interface HandoverCase {
   customer_id: string;
   
   // Event statuses
-  kyc_status: EventStatus;
-  kyc_received_at: string | null;
-  
   contract_status: EventStatus;
   contract_received_at: string | null;
   

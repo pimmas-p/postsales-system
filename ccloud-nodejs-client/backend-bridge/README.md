@@ -87,15 +87,24 @@ GET    /api/handover/stats              # Get statistics
 
 ## 🔄 Kafka Integration
 
-### Subscribed Topics (Consumer)
-- `managing.kyc.completed` - From Managing team (Team 4)
-- `purchase.contract.drafted` - From Legal team  
-- `payment.secondpayment.completed` - From Payment team
+### Subscribed Topics (Consumer) - 4 topics
+- `contract.drafted` - From Legal team (Team 5) - Contract drafted notification
+- `payment.secondpayment.completed` - From Payment team (Team 6) - Payment confirmation
+- `payment.invoice.commonfees.completed` - From Payment team (Team 6) - Common fees paid
+- `warranty.coverage.verified` - **Response** from Legal team (Team 5) - Warranty verification result (COVERED/REJECTED)
 
-### Published Topics (Producer)
-- `postsales.handover.completed` - To Sale team
-- `postsales.onboarding.started` - Internal
-- `postsales.member.registered` - To Payment team
+### Published Topics (Producer) - 5 topics
+- `postsales.handover.completed` - To Sale team - Handover completion
+- `postsales.onboarding.started` - Internal - Onboarding initiated
+- `postsales.member.registered` - To Payment team - Member registration for billing
+- `postsales.profile.activated` - To CRM/Marketing - Profile activated
+- `warranty.defect.reported` - **Request** to Legal team - Warranty verification request
+
+### Warranty 2-Way Communication
+```
+Request:  warranty.defect.reported (เรา → Legal)
+Response: warranty.coverage.verified (Legal → เรา)
+```
 
 ## 📁 Project Structure
 
@@ -169,22 +178,23 @@ node test-producer.js
 
 ## 📊 Event Flow Examples
 
-### Managing KYC Event → Database
+### Contract Event → Database
 ```javascript
-// Incoming event from managing.kyc.completed topic
+// Incoming event from contract.drafted topic
 {
+  "contractId": "CONTRACT-001",
   "unitId": "UNIT-001",
   "customerId": "CUST-001",
-  "kycStatus": "approved",
-  "timestamp": "2026-04-29T10:00:00Z"
+  "status": "SIGNED",
+  "draftedAt": "2026-04-29T10:00:00Z"
 }
 
 // Stored in handover_cases table
 {
   "unit_id": "UNIT-001",
   "customer_id": "CUST-001",
-  "kyc_status": "approved",
-  "kyc_received_at": "2026-04-29T10:00:00Z",
+  "contract_status": "SIGNED",
+  "contract_received_at": "2026-04-29T10:00:00Z",
   "overall_status": "pending"
 }
 ```

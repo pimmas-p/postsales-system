@@ -114,6 +114,8 @@ export const DefectDetail: React.FC = () => {
       return data.data;
     },
     enabled: !!id,
+    refetchInterval: 5000, // Auto-refresh every 5 seconds to catch warranty updates
+    staleTime: 0, // Always consider data stale to ensure fresh warranty status
   });
 
   // Fetch unit history (with graceful error handling)
@@ -475,6 +477,48 @@ export const DefectDetail: React.FC = () => {
                 </Alert>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {warranty.coverage_status && (
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Coverage Status</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, textTransform: 'capitalize' }}>
+                        {warranty.coverage_status}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {warranty.coverage_reason && (
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Reason</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {warranty.coverage_reason}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {warranty.verified_at && (
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Verified At</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {format(new Date(warranty.verified_at), 'MMM dd, yyyy HH:mm')}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {warranty.warranty_id && (
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Warranty ID</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                        {warranty.warranty_id}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {warranty.pending_verification && (
+                    <Alert severity="info" sx={{ mt: 1 }}>
+                      Warranty verification is pending. Waiting for Legal Team response...
+                    </Alert>
+                  )}
+
                   <Box>
                     <Typography variant="caption" color="text.secondary">Contract ID</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>

@@ -7,8 +7,7 @@ echo "============================================"
 
 # Topics that need to be created:
 TOPICS=(
-  "managing.kyc.complete"
-  "purchase.contract.drafted"
+  "contract.drafted"
   "payment.secondpayment.completed"
   "payment.invoice.commonfees.completed"
   "warranty.coverage.verified-topic"

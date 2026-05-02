@@ -62,11 +62,6 @@ const options = {
               type: 'string',
               description: 'Customer identifier'
             },
-            kyc_status: {
-              type: 'string',
-              enum: ['pending', 'approved', 'rejected'],
-              description: 'KYC verification status'
-            },
             contract_status: {
               type: 'string',
               enum: ['pending', 'drafted', 'signed'],

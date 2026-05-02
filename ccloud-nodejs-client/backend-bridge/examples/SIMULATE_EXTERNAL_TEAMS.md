@@ -221,7 +221,7 @@ curl http://localhost:3001/api/defects
   "verifiedAt": "2026-05-02T10:00:00Z"
 }
 ```
-**Topic**: `warranty.coverage.verified-topic`
+**Topic**: `warranty.coverage.verified`
 
 ## 💡 Use Cases
 
